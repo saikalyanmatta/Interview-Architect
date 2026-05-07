@@ -160,7 +160,7 @@ export default function InterviewRoom() {
     setSpeechStatus("");
     stopListening();
     getNextQuestion.mutate(
-      { params: { id: parseInt(sessionId) } } as any,
+      { id: parseInt(sessionId) },
       {
         onSuccess: (data: any) => {
           setIsLoadingQuestion(false);
@@ -209,9 +209,9 @@ export default function InterviewRoom() {
 
     submitAnswer.mutate(
       {
-        params: { id: parseInt(sessionId) },
+        id: parseInt(sessionId),
         data: { questionId: currentQuestion.id, content: answer },
-      } as any,
+      },
       {
         onSuccess: (data: any) => {
           queryClient.invalidateQueries({
