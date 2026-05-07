@@ -372,7 +372,7 @@ Return ONLY the question text, nothing else.`;
 
   try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-5.4",
+      model: "gpt-4.1",
       max_completion_tokens: 256,
       messages: [
         { role: "system", content: systemPrompt },
@@ -428,7 +428,7 @@ router.post("/candidate/sessions/:id/answers", async (req, res): Promise<void> =
     const [jobProfile] = await db.select().from(jobProfilesTable).where(eq(jobProfilesTable.id, interview.jobProfileId));
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-5.4",
+      model: "gpt-4.1",
       max_completion_tokens: 512,
       messages: [
         {
@@ -487,7 +487,7 @@ router.post("/candidate/sessions/:id/coding-answers", async (req, res): Promise<
     const [codingQ] = await db.select().from(codingQuestionsTable).where(eq(codingQuestionsTable.id, parsed.data.codingQuestionId));
     if (codingQ) {
       const completion = await openai.chat.completions.create({
-        model: "gpt-5.4",
+        model: "gpt-4.1",
         max_completion_tokens: 512,
         messages: [
           {
@@ -549,7 +549,7 @@ router.post("/candidate/sessions/:id/complete", async (req, res): Promise<void> 
     }).join("\n\n");
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-5.4",
+      model: "gpt-4.1",
       max_completion_tokens: 512,
       messages: [
         { role: "system", content: "You are an interview evaluator. Give a concise overall feedback summary (2-3 sentences) for this candidate." },
