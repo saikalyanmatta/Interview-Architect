@@ -1,22 +1,30 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: AI Interview Platform API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication
+  - name: employer
+    description: Employer portal operations
+  - name: candidate
+    description: Candidate interview operations
+  - name: interview
+    description: Interview AI operations
+  - name: openai
+    description: OpenAI AI chat, image, and audio operations
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +32,752 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # Auth
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterBody"
+      responses:
+        "201":
+          description: Registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "204":
+          description: Logged out
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # Employer - Job Profiles
+  /employer/job-profiles:
+    get:
+      operationId: listJobProfiles
+      tags: [employer]
+      summary: List job profiles
+      responses:
+        "200":
+          description: List of job profiles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/JobProfile"
+    post:
+      operationId: createJobProfile
+      tags: [employer]
+      summary: Create a job profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateJobProfileBody"
+      responses:
+        "201":
+          description: Created job profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobProfile"
+  /employer/job-profiles/{id}:
+    get:
+      operationId: getJobProfile
+      tags: [employer]
+      summary: Get job profile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Job profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobProfileWithSkills"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateJobProfile
+      tags: [employer]
+      summary: Update job profile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateJobProfileBody"
+      responses:
+        "200":
+          description: Updated job profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobProfileWithSkills"
+    delete:
+      operationId: deleteJobProfile
+      tags: [employer]
+      summary: Delete job profile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # Employer - Interviews
+  /employer/interviews:
+    get:
+      operationId: listInterviews
+      tags: [employer]
+      summary: List scheduled interviews
+      responses:
+        "200":
+          description: List of interviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Interview"
+    post:
+      operationId: createInterview
+      tags: [employer]
+      summary: Create/schedule an interview
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateInterviewBody"
+      responses:
+        "201":
+          description: Created interview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Interview"
+  /employer/interviews/{id}:
+    get:
+      operationId: getInterview
+      tags: [employer]
+      summary: Get interview with details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Interview with details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InterviewWithDetails"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateInterview
+      tags: [employer]
+      summary: Update interview
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateInterviewBody"
+      responses:
+        "200":
+          description: Updated interview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Interview"
+    delete:
+      operationId: deleteInterview
+      tags: [employer]
+      summary: Delete interview
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /employer/interviews/{id}/invitations:
+    get:
+      operationId: listInvitations
+      tags: [employer]
+      summary: List candidate invitations for interview
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of invitations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Invitation"
+    post:
+      operationId: addInvitations
+      tags: [employer]
+      summary: Add candidate email invitations (line-separated emails)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddInvitationsBody"
+      responses:
+        "201":
+          description: Invitations added
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Invitation"
+
+  /employer/interviews/{id}/sessions:
+    get:
+      operationId: listInterviewSessions
+      tags: [employer]
+      summary: List sessions for an interview
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of sessions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Session"
+
+  /employer/sessions/{id}:
+    get:
+      operationId: getEmployerSession
+      tags: [employer]
+      summary: Get session results for employer review
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Session with full results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionWithResults"
+
+  /employer/stats:
+    get:
+      operationId: getEmployerStats
+      tags: [employer]
+      summary: Get employer dashboard stats
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmployerStats"
+
+  # Candidate
+  /candidate/check-access:
+    post:
+      operationId: checkCandidateAccess
+      tags: [candidate]
+      summary: Check if candidate email has access to an interview
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckAccessBody"
+      responses:
+        "200":
+          description: Access check result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckAccessResponse"
+
+  /candidate/sessions:
+    post:
+      operationId: createSession
+      tags: [candidate]
+      summary: Start a new interview session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSessionBody"
+      responses:
+        "201":
+          description: Created session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+
+  /candidate/sessions/{id}:
+    get:
+      operationId: getSession
+      tags: [candidate]
+      summary: Get session details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+
+  /candidate/sessions/{id}/next-question:
+    post:
+      operationId: getNextQuestion
+      tags: [candidate]
+      summary: Get next adaptive question for session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Next question or completion signal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NextQuestionResponse"
+
+  /candidate/sessions/{id}/answers:
+    post:
+      operationId: submitAnswer
+      tags: [candidate]
+      summary: Submit answer to current question
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmitAnswerBody"
+      responses:
+        "201":
+          description: Answer submitted with AI evaluation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnswerWithEvaluation"
+
+  /candidate/sessions/{id}/coding-questions:
+    get:
+      operationId: getCodingQuestions
+      tags: [candidate]
+      summary: Get coding questions for session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Coding questions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CodingQuestion"
+
+  /candidate/sessions/{id}/coding-answers:
+    post:
+      operationId: submitCodingAnswer
+      tags: [candidate]
+      summary: Submit coding answer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmitCodingAnswerBody"
+      responses:
+        "201":
+          description: Coding answer submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CodingAnswer"
+
+  /candidate/sessions/{id}/complete:
+    post:
+      operationId: completeSession
+      tags: [candidate]
+      summary: Complete the interview session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Session completed with results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionWithResults"
+
+  /candidate/sessions/{id}/results:
+    get:
+      operationId: getSessionResults
+      tags: [candidate]
+      summary: Get results for completed session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Session results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionWithResults"
+
+  # Interview AI - TTS
+  /interview/tts:
+    post:
+      operationId: textToSpeech
+      tags: [interview]
+      summary: Convert question text to speech audio
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TtsBody"
+      responses:
+        "200":
+          description: Audio data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TtsResponse"
+
+  /interview/generate-coding-questions:
+    post:
+      operationId: generateCodingQuestions
+      tags: [interview]
+      summary: Generate coding questions for a session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateCodingQuestionsBody"
+      responses:
+        "200":
+          description: Generated coding questions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CodingQuestion"
+
+  # OpenAI (standard integration paths kept minimal)
+  /openai/conversations:
+    get:
+      operationId: listOpenaiConversations
+      tags: [openai]
+      summary: List all conversations
+      responses:
+        "200":
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OpenaiConversation"
+    post:
+      operationId: createOpenaiConversation
+      tags: [openai]
+      summary: Create a new conversation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOpenaiConversationBody"
+      responses:
+        "201":
+          description: Created conversation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenaiConversation"
+  /openai/conversations/{id}:
+    get:
+      operationId: getOpenaiConversation
+      tags: [openai]
+      summary: Get conversation with messages
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Conversation with messages
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenaiConversationWithMessages"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenaiError"
+    delete:
+      operationId: deleteOpenaiConversation
+      tags: [openai]
+      summary: Delete a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenaiError"
+  /openai/conversations/{id}/messages:
+    get:
+      operationId: listOpenaiMessages
+      tags: [openai]
+      summary: List messages in a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OpenaiMessage"
+    post:
+      operationId: sendOpenaiMessage
+      tags: [openai]
+      summary: Send a text message and receive a streaming text response
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendOpenaiMessageBody"
+      responses:
+        "200":
+          description: SSE stream of assistant text chunks
+          content:
+            text/event-stream: {}
+  /openai/conversations/{id}/voice-messages:
+    post:
+      operationId: sendOpenaiVoiceMessage
+      tags: [openai]
+      summary: Send audio and receive a streaming voice response
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendOpenaiVoiceMessageBody"
+      responses:
+        "200":
+          description: SSE stream of transcript and audio chunks
+          content:
+            text/event-stream: {}
+  /openai/generate-image:
+    post:
+      operationId: generateOpenaiImage
+      tags: [openai]
+      summary: Generate an image from a text prompt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateOpenaiImageBody"
+      responses:
+        "200":
+          description: Generated image data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerateOpenaiImageResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +788,843 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    # Auth
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+          enum: [employer, candidate]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - email
+        - name
+        - role
+        - createdAt
+
+    RegisterBody:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+          enum: [employer, candidate]
+      required:
+        - email
+        - password
+        - name
+        - role
+
+    LoginBody:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        token:
+          type: string
+      required:
+        - user
+        - token
+
+    # Job Profiles
+    JobProfileSkill:
+      type: object
+      properties:
+        id:
+          type: integer
+        jobProfileId:
+          type: integer
+        skillName:
+          type: string
+        proficiencyLevel:
+          type: string
+          enum: [beginner, intermediate, advanced, expert]
+        weightage:
+          type: integer
+      required:
+        - id
+        - jobProfileId
+        - skillName
+        - proficiencyLevel
+        - weightage
+
+    JobProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        employerId:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - employerId
+        - title
+        - description
+        - createdAt
+
+    JobProfileWithSkills:
+      type: object
+      properties:
+        id:
+          type: integer
+        employerId:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        skills:
+          type: array
+          items:
+            $ref: "#/components/schemas/JobProfileSkill"
+      required:
+        - id
+        - employerId
+        - title
+        - description
+        - createdAt
+        - skills
+
+    CreateJobProfileSkillBody:
+      type: object
+      properties:
+        skillName:
+          type: string
+        proficiencyLevel:
+          type: string
+          enum: [beginner, intermediate, advanced, expert]
+        weightage:
+          type: integer
+      required:
+        - skillName
+        - proficiencyLevel
+        - weightage
+
+    CreateJobProfileBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        skills:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreateJobProfileSkillBody"
+      required:
+        - title
+        - description
+        - skills
+
+    UpdateJobProfileBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        skills:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreateJobProfileSkillBody"
+
+    # Interviews
+    Interview:
+      type: object
+      properties:
+        id:
+          type: integer
+        employerId:
+          type: integer
+        jobProfileId:
+          type: integer
+        title:
+          type: string
+        scheduledAt:
+          type: ["string", "null"]
+          format: date-time
+        status:
+          type: string
+          enum: [draft, active, closed]
+        difficulty:
+          type: string
+          enum: [easy, medium, hard]
+        interviewerTone:
+          type: string
+          enum: [friendly, professional, strict, casual]
+        numBehavioralQuestions:
+          type: integer
+        numTechnicalQuestions:
+          type: integer
+        numCodingQuestions:
+          type: integer
+        allowedCodingLanguages:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - employerId
+        - jobProfileId
+        - title
+        - status
+        - difficulty
+        - interviewerTone
+        - numBehavioralQuestions
+        - numTechnicalQuestions
+        - numCodingQuestions
+        - allowedCodingLanguages
+        - createdAt
+
+    InterviewWithDetails:
+      type: object
+      properties:
+        id:
+          type: integer
+        employerId:
+          type: integer
+        jobProfileId:
+          type: integer
+        title:
+          type: string
+        scheduledAt:
+          type: ["string", "null"]
+          format: date-time
+        status:
+          type: string
+          enum: [draft, active, closed]
+        difficulty:
+          type: string
+          enum: [easy, medium, hard]
+        interviewerTone:
+          type: string
+          enum: [friendly, professional, strict, casual]
+        numBehavioralQuestions:
+          type: integer
+        numTechnicalQuestions:
+          type: integer
+        numCodingQuestions:
+          type: integer
+        allowedCodingLanguages:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        jobProfile:
+          $ref: "#/components/schemas/JobProfileWithSkills"
+        invitations:
+          type: array
+          items:
+            $ref: "#/components/schemas/Invitation"
+        sessionCount:
+          type: integer
+      required:
+        - id
+        - employerId
+        - jobProfileId
+        - title
+        - status
+        - difficulty
+        - interviewerTone
+        - numBehavioralQuestions
+        - numTechnicalQuestions
+        - numCodingQuestions
+        - allowedCodingLanguages
+        - createdAt
+        - jobProfile
+        - invitations
+        - sessionCount
+
+    CreateInterviewBody:
+      type: object
+      properties:
+        jobProfileId:
+          type: integer
+        title:
+          type: string
+        scheduledAt:
+          type: ["string", "null"]
+          format: date-time
+        difficulty:
+          type: string
+          enum: [easy, medium, hard]
+        interviewerTone:
+          type: string
+          enum: [friendly, professional, strict, casual]
+        numBehavioralQuestions:
+          type: integer
+        numTechnicalQuestions:
+          type: integer
+        numCodingQuestions:
+          type: integer
+        allowedCodingLanguages:
+          type: string
+      required:
+        - jobProfileId
+        - title
+        - difficulty
+        - interviewerTone
+        - numBehavioralQuestions
+        - numTechnicalQuestions
+        - numCodingQuestions
+        - allowedCodingLanguages
+
+    UpdateInterviewBody:
+      type: object
+      properties:
+        title:
+          type: string
+        scheduledAt:
+          type: ["string", "null"]
+          format: date-time
+        status:
+          type: string
+          enum: [draft, active, closed]
+        difficulty:
+          type: string
+          enum: [easy, medium, hard]
+        interviewerTone:
+          type: string
+          enum: [friendly, professional, strict, casual]
+        numBehavioralQuestions:
+          type: integer
+        numTechnicalQuestions:
+          type: integer
+        numCodingQuestions:
+          type: integer
+        allowedCodingLanguages:
+          type: string
+
+    Invitation:
+      type: object
+      properties:
+        id:
+          type: integer
+        interviewId:
+          type: integer
+        email:
+          type: string
+        status:
+          type: string
+          enum: [pending, completed]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - interviewId
+        - email
+        - status
+        - createdAt
+
+    AddInvitationsBody:
+      type: object
+      properties:
+        emails:
+          type: array
+          items:
+            type: string
+      required:
+        - emails
+
+    # Sessions
+    Session:
+      type: object
+      properties:
+        id:
+          type: integer
+        interviewId:
+          type: integer
+        candidateEmail:
+          type: string
+        candidateName:
+          type: string
+        status:
+          type: string
+          enum: [in_progress, completed, abandoned]
+        difficulty:
+          type: string
+          enum: [easy, medium, hard]
+        interviewerTone:
+          type: string
+          enum: [friendly, professional, strict, casual]
+        codingLanguage:
+          type: ["string", "null"]
+        overallScore:
+          type: ["integer", "null"]
+        currentQuestionIndex:
+          type: integer
+        totalQuestions:
+          type: integer
+        phase:
+          type: string
+          enum: [intro, behavioral, technical, coding, completed]
+        startedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: ["string", "null"]
+          format: date-time
+      required:
+        - id
+        - interviewId
+        - candidateEmail
+        - candidateName
+        - status
+        - difficulty
+        - interviewerTone
+        - currentQuestionIndex
+        - totalQuestions
+        - phase
+        - startedAt
+
+    CreateSessionBody:
+      type: object
+      properties:
+        interviewId:
+          type: integer
+        candidateEmail:
+          type: string
+        candidateName:
+          type: string
+        difficulty:
+          type: string
+          enum: [easy, medium, hard]
+        interviewerTone:
+          type: string
+          enum: [friendly, professional, strict, casual]
+        codingLanguage:
+          type: string
+      required:
+        - interviewId
+        - candidateEmail
+        - candidateName
+        - difficulty
+        - interviewerTone
+
+    Question:
+      type: object
+      properties:
+        id:
+          type: integer
+        sessionId:
+          type: integer
+        type:
+          type: string
+          enum: [intro, behavioral, technical, coding]
+        content:
+          type: string
+        difficulty:
+          type: string
+          enum: [easy, medium, hard]
+        orderIndex:
+          type: integer
+        skillTag:
+          type: ["string", "null"]
+      required:
+        - id
+        - sessionId
+        - type
+        - content
+        - difficulty
+        - orderIndex
+
+    NextQuestionResponse:
+      type: object
+      properties:
+        question:
+          $ref: "#/components/schemas/Question"
+        sessionComplete:
+          type: boolean
+        phase:
+          type: string
+          enum: [intro, behavioral, technical, coding, completed]
+        questionNumber:
+          type: integer
+        totalQuestions:
+          type: integer
+      required:
+        - sessionComplete
+        - phase
+
+    SubmitAnswerBody:
+      type: object
+      properties:
+        questionId:
+          type: integer
+        content:
+          type: string
+      required:
+        - questionId
+        - content
+
+    AnswerWithEvaluation:
+      type: object
+      properties:
+        id:
+          type: integer
+        sessionId:
+          type: integer
+        questionId:
+          type: integer
+        content:
+          type: string
+        score:
+          type: ["integer", "null"]
+        feedback:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - sessionId
+        - questionId
+        - content
+        - createdAt
+
+    CodingQuestion:
+      type: object
+      properties:
+        id:
+          type: integer
+        sessionId:
+          type: integer
+        language:
+          type: string
+        problem:
+          type: string
+        difficulty:
+          type: string
+          enum: [easy, medium, hard]
+        orderIndex:
+          type: integer
+        exampleInput:
+          type: ["string", "null"]
+        exampleOutput:
+          type: ["string", "null"]
+      required:
+        - id
+        - sessionId
+        - language
+        - problem
+        - difficulty
+        - orderIndex
+
+    SubmitCodingAnswerBody:
+      type: object
+      properties:
+        codingQuestionId:
+          type: integer
+        code:
+          type: string
+        language:
+          type: string
+      required:
+        - codingQuestionId
+        - code
+        - language
+
+    CodingAnswer:
+      type: object
+      properties:
+        id:
+          type: integer
+        sessionId:
+          type: integer
+        codingQuestionId:
+          type: integer
+        code:
+          type: string
+        language:
+          type: string
+        score:
+          type: ["integer", "null"]
+        feedback:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - sessionId
+        - codingQuestionId
+        - code
+        - language
+        - createdAt
+
+    SessionWithResults:
+      type: object
+      properties:
+        session:
+          $ref: "#/components/schemas/Session"
+        answers:
+          type: array
+          items:
+            $ref: "#/components/schemas/AnswerWithEvaluation"
+        codingAnswers:
+          type: array
+          items:
+            $ref: "#/components/schemas/CodingAnswer"
+        skillScores:
+          type: array
+          items:
+            $ref: "#/components/schemas/SkillScore"
+        overallFeedback:
+          type: ["string", "null"]
+      required:
+        - session
+        - answers
+        - codingAnswers
+        - skillScores
+
+    SkillScore:
+      type: object
+      properties:
+        skillName:
+          type: string
+        score:
+          type: integer
+        weightage:
+          type: integer
+      required:
+        - skillName
+        - score
+        - weightage
+
+    EmployerStats:
+      type: object
+      properties:
+        totalInterviews:
+          type: integer
+        activeInterviews:
+          type: integer
+        totalSessions:
+          type: integer
+        completedSessions:
+          type: integer
+        totalJobProfiles:
+          type: integer
+        avgScore:
+          type: ["number", "null"]
+      required:
+        - totalInterviews
+        - activeInterviews
+        - totalSessions
+        - completedSessions
+        - totalJobProfiles
+
+    # Candidate
+    CheckAccessBody:
+      type: object
+      properties:
+        interviewId:
+          type: integer
+        email:
+          type: string
+      required:
+        - interviewId
+        - email
+
+    CheckAccessResponse:
+      type: object
+      properties:
+        hasAccess:
+          type: boolean
+        interview:
+          $ref: "#/components/schemas/Interview"
+        jobProfile:
+          $ref: "#/components/schemas/JobProfileWithSkills"
+      required:
+        - hasAccess
+
+    # TTS
+    TtsBody:
+      type: object
+      properties:
+        text:
+          type: string
+        voice:
+          type: string
+          enum: [alloy, echo, fable, onyx, nova, shimmer]
+        interviewerTone:
+          type: string
+          enum: [friendly, professional, strict, casual]
+      required:
+        - text
+
+    TtsResponse:
+      type: object
+      properties:
+        audio:
+          type: string
+          description: Base64-encoded audio data (mp3)
+      required:
+        - audio
+
+    # Coding question generation
+    GenerateCodingQuestionsBody:
+      type: object
+      properties:
+        sessionId:
+          type: integer
+        skills:
+          type: array
+          items:
+            type: string
+        difficulty:
+          type: string
+          enum: [easy, medium, hard]
+        language:
+          type: string
+        count:
+          type: integer
+      required:
+        - sessionId
+        - language
+        - count
+
+    # OpenAI standard schemas
+    OpenaiConversation:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - createdAt
+    OpenaiMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+        conversationId:
+          type: integer
+        role:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - conversationId
+        - role
+        - content
+        - createdAt
+    CreateOpenaiConversationBody:
+      type: object
+      properties:
+        title:
+          type: string
+      required:
+        - title
+    SendOpenaiMessageBody:
+      type: object
+      properties:
+        content:
+          type: string
+      required:
+        - content
+    SendOpenaiVoiceMessageBody:
+      type: object
+      properties:
+        audio:
+          type: string
+          description: Base64-encoded audio data
+      required:
+        - audio
+    OpenaiConversationWithMessages:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/OpenaiMessage"
+      required:
+        - id
+        - title
+        - createdAt
+        - messages
+    GenerateOpenaiImageBody:
+      type: object
+      properties:
+        prompt:
+          type: string
+        size:
+          type: string
+          enum: ["1024x1024", "512x512", "256x256"]
+      required:
+        - prompt
+    GenerateOpenaiImageResponse:
+      type: object
+      properties:
+        b64_json:
+          type: string
+      required:
+        - b64_json
+    OpenaiError:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
