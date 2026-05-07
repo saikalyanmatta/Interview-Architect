@@ -1,6 +1,6 @@
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type Request, type Response, type NextFunction } from "express";
 import { db, jobProfilesTable, jobProfileSkillsTable, interviewsTable, invitationsTable, sessionsTable, answersTable, questionsTable, codingAnswersTable, codingQuestionsTable } from "@workspace/db";
-import { eq, and, count, avg, sql } from "drizzle-orm";
+import { eq, and, count, sql } from "drizzle-orm";
 import {
   CreateJobProfileBody,
   UpdateJobProfileBody,
@@ -18,9 +18,16 @@ import {
   ListInterviewSessionsParams,
   GetEmployerSessionParams,
 } from "@workspace/api-zod";
-import { requireAuth } from "./auth";
 
 const router: IRouter = Router();
+
+function requireAuth(req: Request, res: Response, next: NextFunction): void {
+  if (!req.isAuthenticated?.()) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  next();
+}
 
 router.use(requireAuth);
 
@@ -208,7 +215,6 @@ router.get("/employer/sessions/:id", async (req: any, res): Promise<void> => {
   const answers = await db.select().from(answersTable).where(eq(answersTable.sessionId, session.id));
   const codingAnswers = await db.select().from(codingAnswersTable).where(eq(codingAnswersTable.sessionId, session.id));
 
-  // Get interview for job profile
   const [interview] = await db.select().from(interviewsTable).where(eq(interviewsTable.id, session.interviewId));
   const skills = await db.select().from(jobProfileSkillsTable).where(eq(jobProfileSkillsTable.jobProfileId, interview.jobProfileId));
 

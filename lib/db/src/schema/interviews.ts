@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
@@ -6,7 +6,7 @@ import { jobProfilesTable } from "./job-profiles";
 
 export const interviewsTable = pgTable("interviews", {
   id: serial("id").primaryKey(),
-  employerId: integer("employer_id").notNull().references(() => usersTable.id, { onDelete: "cascade" }),
+  employerId: varchar("employer_id").notNull().references(() => usersTable.id, { onDelete: "cascade" }),
   jobProfileId: integer("job_profile_id").notNull().references(() => jobProfilesTable.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
   scheduledAt: timestamp("scheduled_at", { withTimezone: true }),

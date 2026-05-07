@@ -5,9 +5,8 @@
  * AI Interview Platform API
  * OpenAPI spec version: 0.1.0
  */
-import type { User } from "./user";
 
-export interface AuthResponse {
-  user: User;
-  token: string;
+export interface ParseResumeBody {
+  /** Plain-text content of the resume */
+  resumeText: string;
 }

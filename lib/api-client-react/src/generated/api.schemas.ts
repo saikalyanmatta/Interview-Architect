@@ -13,44 +13,71 @@ export interface ErrorResponse {
   error: string;
 }
 
-export type UserRole = (typeof UserRole)[keyof typeof UserRole];
+export interface AuthUser {
+  id: string;
+  /** @nullable */
+  email: string | null;
+  /** @nullable */
+  firstName: string | null;
+  /** @nullable */
+  lastName: string | null;
+  /** @nullable */
+  profileImageUrl: string | null;
+  /** @nullable */
+  role?: string | null;
+}
 
-export const UserRole = {
+export interface AuthUserEnvelope {
+  user: AuthUser | null;
+}
+
+export type UpdateRoleBodyRole =
+  (typeof UpdateRoleBodyRole)[keyof typeof UpdateRoleBodyRole];
+
+export const UpdateRoleBodyRole = {
   employer: "employer",
   candidate: "candidate",
 } as const;
 
-export interface User {
-  id: number;
-  email: string;
-  name: string;
-  role: UserRole;
-  createdAt: string;
+export interface UpdateRoleBody {
+  role: UpdateRoleBodyRole;
 }
 
-export type RegisterBodyRole =
-  (typeof RegisterBodyRole)[keyof typeof RegisterBodyRole];
-
-export const RegisterBodyRole = {
-  employer: "employer",
-  candidate: "candidate",
-} as const;
-
-export interface RegisterBody {
-  email: string;
-  password: string;
-  name: string;
-  role: RegisterBodyRole;
+export interface MobileTokenExchangeRequest {
+  /** @minLength 1 */
+  code: string;
+  /** @minLength 1 */
+  code_verifier: string;
+  /** @minLength 1 */
+  redirect_uri: string;
+  /** @minLength 1 */
+  state: string;
+  /** @minLength 1 */
+  nonce?: string;
 }
 
-export interface LoginBody {
-  email: string;
-  password: string;
-}
-
-export interface AuthResponse {
-  user: User;
+export interface MobileTokenExchangeSuccess {
   token: string;
+}
+
+export const LogoutSuccessValue = {
+  success: true,
+} as const;
+export type LogoutSuccess = typeof LogoutSuccessValue;
+
+export interface ErrorEnvelope {
+  error: string;
+}
+
+export interface ParseResumeBody {
+  /** Plain-text content of the resume */
+  resumeText: string;
+}
+
+export interface ParseResumeResponse {
+  skills: string[];
+  suggestedRole: string;
+  summary?: string;
 }
 
 export type JobProfileSkillProficiencyLevel =
@@ -633,3 +660,21 @@ export interface GenerateOpenaiImageResponse {
 export interface OpenaiError {
   error: string;
 }
+
+/**
+ * Opaque session token — `Bearer <sid>`.
+ */
+export type AuthorizationSessionHeaderParameter = string;
+
+export type BeginBrowserLoginParams = {
+  /**
+   * Relative path to redirect to after login (must start with `/`). Defaults to `/`.
+   */
+  returnTo?: string;
+};
+
+export type HandleBrowserLoginCallbackParams = {
+  code?: string;
+  state?: string;
+  iss?: string;
+};

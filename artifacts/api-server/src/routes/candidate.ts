@@ -13,10 +13,44 @@ import {
   SubmitCodingAnswerParams,
   CompleteSessionParams,
   GetSessionResultsParams,
+  ParseResumeBody,
 } from "@workspace/api-zod";
 import { openai } from "@workspace/integrations-openai-ai-server";
 
 const router: IRouter = Router();
+
+// Resume parsing
+router.post("/candidate/parse-resume", async (req, res): Promise<void> => {
+  const parsed = ParseResumeBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+
+  const { resumeText } = parsed.data;
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4.1",
+      messages: [
+        {
+          role: "system",
+          content: `You are a resume parser. Extract technical and soft skills from the resume text, suggest a job role, and provide a brief summary. Respond with JSON only.`,
+        },
+        {
+          role: "user",
+          content: `Parse this resume and extract skills:\n\n${resumeText}\n\nRespond with JSON in this exact format:\n{"skills": ["skill1", "skill2", ...], "suggestedRole": "role title", "summary": "2-3 sentence summary"}`,
+        },
+      ],
+      response_format: { type: "json_object" },
+    });
+
+    const result = JSON.parse(completion.choices[0].message.content ?? "{}");
+    res.json({
+      skills: result.skills ?? [],
+      suggestedRole: result.suggestedRole ?? "Software Engineer",
+      summary: result.summary ?? "",
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to parse resume" });
+  }
+});
 
 // Check if candidate has access
 router.post("/candidate/check-access", async (req, res): Promise<void> => {

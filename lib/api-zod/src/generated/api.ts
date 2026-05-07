@@ -15,43 +15,116 @@ export const HealthCheckResponse = zod.object({
 });
 
 /**
- * @summary Register a new user
+ * @summary Get the currently authenticated user
  */
-export const RegisterBody = zod.object({
-  email: zod.string(),
-  password: zod.string(),
-  name: zod.string(),
-  role: zod.enum(["employer", "candidate"]),
+export const GetCurrentAuthUserHeader = zod.object({
+  Authorization: zod
+    .string()
+    .optional()
+    .describe("Opaque session token — `Bearer <sid>`."),
+});
+
+export const GetCurrentAuthUserResponse = zod.object({
+  user: zod.union([
+    zod.object({
+      id: zod.string(),
+      email: zod.string().email().nullable(),
+      firstName: zod.string().nullable(),
+      lastName: zod.string().nullable(),
+      profileImageUrl: zod.string().nullable(),
+      role: zod.string().nullish(),
+    }),
+    zod.null(),
+  ]),
 });
 
 /**
- * @summary Login
+ * @summary Set the authenticated user's role (employer or candidate)
  */
-export const LoginBody = zod.object({
-  email: zod.string(),
-  password: zod.string(),
+export const UpdateUserRoleHeader = zod.object({
+  Authorization: zod
+    .string()
+    .optional()
+    .describe("Opaque session token — `Bearer <sid>`."),
 });
 
-export const LoginResponse = zod.object({
-  user: zod.object({
-    id: zod.number(),
-    email: zod.string(),
-    name: zod.string(),
-    role: zod.enum(["employer", "candidate"]),
-    createdAt: zod.coerce.date(),
-  }),
+export const UpdateUserRoleBody = zod.object({
+  role: zod.enum(["employer", "candidate"]),
+});
+
+export const UpdateUserRoleResponse = zod.object({
+  user: zod.union([
+    zod.object({
+      id: zod.string(),
+      email: zod.string().email().nullable(),
+      firstName: zod.string().nullable(),
+      lastName: zod.string().nullable(),
+      profileImageUrl: zod.string().nullable(),
+      role: zod.string().nullish(),
+    }),
+    zod.null(),
+  ]),
+});
+
+/**
+ * @summary Start the browser OIDC login flow
+ */
+export const BeginBrowserLoginQueryParams = zod.object({
+  returnTo: zod.coerce
+    .string()
+    .optional()
+    .describe(
+      "Relative path to redirect to after login (must start with `\/`). Defaults to `\/`.",
+    ),
+});
+
+/**
+ * @summary Complete the browser OIDC login flow
+ */
+export const HandleBrowserLoginCallbackQueryParams = zod.object({
+  code: zod.coerce.string().optional(),
+  state: zod.coerce.string().optional(),
+  iss: zod.coerce.string().url().optional(),
+});
+
+/**
+ * @summary Clear the session and begin OIDC logout
+ */
+export const LogoutBrowserSessionHeader = zod.object({
+  Authorization: zod
+    .string()
+    .optional()
+    .describe("Opaque session token — `Bearer <sid>`."),
+});
+
+/**
+ * @summary Exchange a mobile OIDC code for a session token
+ */
+
+export const ExchangeMobileAuthorizationCodeBody = zod.object({
+  code: zod.string().min(1),
+  code_verifier: zod.string().min(1),
+  redirect_uri: zod.string().url().min(1),
+  state: zod.string().min(1),
+  nonce: zod.string().min(1).optional(),
+});
+
+export const ExchangeMobileAuthorizationCodeResponse = zod.object({
   token: zod.string(),
 });
 
 /**
- * @summary Get current user
+ * @summary Delete a mobile session token
  */
-export const GetMeResponse = zod.object({
-  id: zod.number(),
-  email: zod.string(),
-  name: zod.string(),
-  role: zod.enum(["employer", "candidate"]),
-  createdAt: zod.coerce.date(),
+export const LogoutMobileSessionHeader = zod.object({
+  Authorization: zod
+    .string()
+    .optional()
+    .describe("Opaque session token — `Bearer <sid>`."),
+});
+
+export const LogoutMobileSessionResponse = zod.object({
+  success: zod.boolean(),
 });
 
 /**
@@ -430,6 +503,19 @@ export const GetEmployerStatsResponse = zod.object({
   completedSessions: zod.number(),
   totalJobProfiles: zod.number(),
   avgScore: zod.number().nullish(),
+});
+
+/**
+ * @summary Parse resume text and extract skills using AI
+ */
+export const ParseResumeBody = zod.object({
+  resumeText: zod.string().describe("Plain-text content of the resume"),
+});
+
+export const ParseResumeResponse = zod.object({
+  skills: zod.array(zod.string()),
+  suggestedRole: zod.string(),
+  summary: zod.string().optional(),
 });
 
 /**
