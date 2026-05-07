@@ -3,22 +3,15 @@ import { useLocation } from "wouter";
 import { useAuth } from "@workspace/replit-auth-web";
 import {
   Cat,
-  Mic,
   ChevronRight,
   Loader2,
   LogIn,
   Briefcase,
-  Star,
   ArrowRight,
-  Sparkles,
-  FileText,
   LayoutDashboard,
   History,
   LogOut,
   Building2,
-  Mail,
-  MapPin,
-  GraduationCap,
   Moon,
 } from "lucide-react";
 
@@ -42,9 +35,7 @@ const TEAM = [
     university: "VIT-AP University",
     location: "Guntur, Andhra Pradesh, India",
     email: "saikalyan.matta@gmail.com",
-    borderColor: "border-[#3b82f6]",
-    glowColor: "shadow-[#3b82f6]/20",
-    nameColor: "text-[#60a5fa]",
+    borderClass: "border-l-[#3b82f6]",
   },
   {
     name: "M.R.K.Murthy",
@@ -53,9 +44,7 @@ const TEAM = [
     university: "VIT-AP University",
     location: "Guntur, Andhra Pradesh, India",
     email: "kittumakkapati@gmail.com",
-    borderColor: "border-[#eab308]",
-    glowColor: "shadow-[#eab308]/20",
-    nameColor: "text-[#facc15]",
+    borderClass: "border-l-[#eab308]",
   },
   {
     name: "K. Sai Deep",
@@ -64,9 +53,7 @@ const TEAM = [
     university: "VIT-AP University",
     location: "Guntur, Andhra Pradesh, India",
     email: "saideep254@gmail.com",
-    borderColor: "border-[#22c55e]",
-    glowColor: "shadow-[#22c55e]/20",
-    nameColor: "text-[#4ade80]",
+    borderClass: "border-l-[#22c55e]",
   },
 ];
 
@@ -81,78 +68,86 @@ function NavLogo() {
   );
 }
 
-function SharedSections() {
+function HeroSection() {
   return (
-    <>
-      {/* About the System */}
-      <section className="w-full max-w-4xl mx-auto px-6 mt-10">
-        <div className="rounded-2xl border border-[#1e3a5f] bg-[#0d1b2e] p-7">
-          <h2 className="text-lg font-bold text-white mb-3">About the System</h2>
-          <p className="text-[#7a9cc4] text-sm leading-relaxed mb-5">
-            The Resume Based Personalised Multinomial AI Interview Evaluation System is an intelligent
-            platform designed to assess candidates through adaptive, data-driven interview analysis. Unlike
-            traditional interview systems, this platform analyzes a candidate's resume and dynamically
-            generates relevant technical and behavioral questions tailored to their skills, experience, and
-            domain expertise.
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {[
-              { icon: FileText, label: "Resume Parsing", desc: "Upload your resume for a personalised question set." },
-              { icon: Sparkles, label: "Adaptive AI", desc: "Difficulty adjusts in real-time based on your answers." },
-              { icon: Star, label: "Instant Scoring", desc: "Detailed per-answer scores with feedback on completion." },
-            ].map(({ icon: Icon, label, desc }) => (
-              <div key={label} className="rounded-xl border border-[#1e3a5f]/60 bg-[#0d1117]/60 p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center">
-                    <Icon size={14} className="text-primary" />
-                  </div>
-                  <span className="text-sm font-semibold text-foreground">{label}</span>
-                </div>
-                <p className="text-xs text-[#7a9cc4] leading-relaxed">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+    <section className="text-center py-14 px-6 bg-gradient-to-b from-[#0d1b2e] to-[#0d1117]">
+      <style>{`
+        @keyframes gradientShift {
+          0%   { background-position: 0% 50%; }
+          50%  { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        .hero-gradient-text {
+          background: linear-gradient(135deg, #60a5fa, #3b82f6, #93c5fd, #1d4ed8, #60a5fa);
+          background-size: 300% 300%;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          animation: gradientShift 4s ease infinite;
+        }
+      `}</style>
+      <p className="text-[#7a9cc4] text-2xl font-medium mb-2">Welcome to</p>
+      <h1
+        className="hero-gradient-text font-black leading-tight mb-2"
+        style={{ fontSize: "3.6rem", lineHeight: 1.1 }}
+      >
+        Resume Based Personalised Multinomial
+      </h1>
+      <p className="text-white text-xl tracking-wide">
+        Ai Interview Evaluation System
+      </p>
+    </section>
+  );
+}
 
-      {/* Team */}
-      <section className="w-full max-w-4xl mx-auto px-6 mt-10">
-        <h2 className="text-2xl font-bold text-white text-center mb-8">Team</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-          {TEAM.map((member) => (
-            <div
-              key={member.rollNo}
-              className={`rounded-2xl border-2 ${member.borderColor} bg-[#0d1b2e] p-5 shadow-lg ${member.glowColor} flex flex-col gap-2`}
-            >
-              <div className="mb-1">
-                <p className={`text-sm font-bold ${member.nameColor}`}>
-                  {member.name} – {member.rollNo}
-                </p>
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-[#7a9cc4]">
-                <GraduationCap size={12} className="shrink-0" />
-                {member.degree}
-              </div>
-              <div className="text-xs text-[#7a9cc4]">{member.university}</div>
-              <div className="flex items-start gap-1.5 text-xs text-[#7a9cc4]">
-                <MapPin size={12} className="shrink-0 mt-0.5" />
-                {member.location}
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-[#7a9cc4]">
-                <Mail size={12} className="shrink-0" />
-                {member.email}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-    </>
+function AboutCard() {
+  return (
+    <section className="w-full max-w-5xl mx-auto px-6 mt-10">
+      <div
+        className="rounded-2xl border border-[#1e3a5f] bg-[#0d1b2e] p-8 border-l-4 border-l-[#3b82f6]"
+        style={{ boxShadow: "0 20px 40px rgba(0,0,0,0.4)" }}
+      >
+        <h3 className="text-xl font-bold text-white mb-3">About the System</h3>
+        <p className="text-[#7a9cc4] leading-relaxed" style={{ fontSize: "1.05rem" }}>
+          The Resume Based Personalised Multinomial AI Interview Evaluation System is an intelligent
+          platform designed to assess candidates through adaptive, data-driven interview analysis.
+          Unlike traditional interview systems, this platform analyzes a candidate's resume
+          and dynamically generates relevant technical and behavioral questions tailored
+          to their skills, experience, and domain expertise.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+function TeamSection() {
+  return (
+    <section className="w-full max-w-5xl mx-auto px-6 mt-10 mb-4">
+      <h3 className="text-xl font-bold text-white text-center mb-6">Team</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        {TEAM.map((member) => (
+          <div
+            key={member.rollNo}
+            className={`rounded-2xl border border-[#1e3a5f] bg-[#0d1b2e] p-6 text-center border-l-4 ${member.borderClass}`}
+            style={{ boxShadow: "0 20px 40px rgba(0,0,0,0.4)" }}
+          >
+            <p className="font-bold text-white mb-1.5" style={{ fontSize: "1.05rem" }}>
+              {member.name} - {member.rollNo}
+            </p>
+            <p className="text-[#7a9cc4] mb-1" style={{ fontSize: "0.95rem" }}>{member.degree}</p>
+            <p className="text-[#7a9cc4] mb-1" style={{ fontSize: "0.95rem" }}>{member.university}</p>
+            <p className="text-[#7a9cc4] mb-1" style={{ fontSize: "0.95rem" }}>{member.location}</p>
+            <p className="text-[#7a9cc4] mt-2" style={{ fontSize: "0.9rem" }}>{member.email}</p>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
 function Footer() {
   return (
-    <footer className="border-t border-[#1e3a5f]/60 bg-[#0d1b2e] px-6 py-5 text-center mt-12">
+    <footer className="border-t border-[#1e3a5f]/60 bg-[#0d1b2e] px-6 py-5 text-center mt-10">
       <p className="text-xs text-[#7a9cc4]">
         &copy; {new Date().getFullYear()} Resume Based Personalised Multinomial Ai Interview Evaluation System. All rights reserved.
       </p>
@@ -189,7 +184,6 @@ export default function CandidateLanding() {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-[#0d1117] flex flex-col">
-        {/* Nav */}
         <header className="bg-[#0d1b2e] border-b border-[#1e3a5f]/60 px-6 py-3 flex items-center justify-between sticky top-0 z-10">
           <NavLogo />
           <button
@@ -200,49 +194,18 @@ export default function CandidateLanding() {
             Sign In
           </button>
         </header>
-
-        {/* Hero */}
-        <section className="text-center py-16 px-6 bg-gradient-to-b from-[#0d1b2e] to-[#0d1117] border-b border-[#1e3a5f]/40">
-          <p className="text-[#7a9cc4] text-sm font-medium tracking-widest mb-4">Welcome to</p>
-          <h1 className="text-5xl sm:text-6xl font-extrabold text-white leading-tight mb-3">
-            Resume Based Personalised
-            <br />
-            Multinomial
-          </h1>
-          <p className="text-[#7a9cc4] text-lg mb-8 tracking-wide">
-            Ai Interview Evaluation System
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <button
-              onClick={login}
-              className="inline-flex items-center gap-2 px-7 py-3 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl text-sm font-bold transition-colors shadow-xl shadow-primary/30"
-            >
-              <LogIn size={16} />
-              Sign in to start practicing
-            </button>
-            <button
-              onClick={() => setLocation("/employer/dashboard")}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-[#c69a2a]/40 bg-[#c69a2a]/10 hover:bg-[#c69a2a]/20 text-[#e5b800] text-sm font-semibold transition-colors"
-            >
-              <Building2 size={15} />
-              Employer Portal
-            </button>
-          </div>
-        </section>
-
-        {/* Shared: About + Team */}
-        <SharedSections />
+        <HeroSection />
+        <AboutCard />
+        <TeamSection />
         <Footer />
       </div>
     );
   }
 
   /* ─── POST-LOGIN ─── */
-  const firstName = user?.firstName ?? user?.email?.split("@")[0] ?? "there";
 
   return (
     <div className="min-h-screen bg-[#0d1117] flex flex-col">
-      {/* Nav */}
       <header className="bg-[#0d1b2e] border-b border-[#1e3a5f]/60 px-6 py-3 flex items-center justify-between sticky top-0 z-10">
         <NavLogo />
         <nav className="flex items-center gap-2">
@@ -276,31 +239,12 @@ export default function CandidateLanding() {
         </nav>
       </header>
 
-      {/* Hero */}
-      <section className="text-center py-16 px-6 bg-gradient-to-b from-[#0d1b2e] to-[#0d1117] border-b border-[#1e3a5f]/40">
-        <p className="text-[#7a9cc4] text-sm font-medium tracking-widest mb-4">Welcome to</p>
-        <h1 className="text-5xl sm:text-6xl font-extrabold text-white leading-tight mb-3">
-          Resume Based Personalised
-          <br />
-          Multinomial
-        </h1>
-        <p className="text-[#7a9cc4] text-lg mb-8 tracking-wide">
-          Ai Interview Evaluation System
-        </p>
-        <button
-          onClick={() => setLocation("/interview/customize")}
-          className="inline-flex items-center gap-2 px-7 py-3 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl text-sm font-bold transition-colors shadow-xl shadow-primary/30"
-        >
-          <ArrowRight size={16} />
-          Start Interview
-        </button>
-      </section>
-
-      {/* Shared: About + Team */}
-      <SharedSections />
+      <HeroSection />
+      <AboutCard />
+      <TeamSection />
 
       {/* Employer Interviews */}
-      <section id="employer-interviews" className="w-full max-w-4xl mx-auto px-6 mt-10">
+      <section id="employer-interviews" className="w-full max-w-5xl mx-auto px-6 mt-10">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-base font-bold text-foreground">Employer Interviews</h2>
@@ -316,7 +260,7 @@ export default function CandidateLanding() {
           <div className="rounded-2xl border border-[#1e3a5f] bg-[#0d1b2e] p-10 text-center">
             <Briefcase size={32} className="text-[#7a9cc4] mx-auto mb-3" />
             <p className="text-foreground font-medium mb-1">No employer interviews available yet</p>
-            <p className="text-sm text-[#7a9cc4]">Use the "Start Interview" button above to practice on your own.</p>
+            <p className="text-sm text-[#7a9cc4]">Go to Dashboard to start a self-practice interview.</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -371,7 +315,7 @@ export default function CandidateLanding() {
       </section>
 
       {/* Employer Portal CTA */}
-      <section className="w-full max-w-4xl mx-auto px-6 mt-8">
+      <section className="w-full max-w-5xl mx-auto px-6 mt-8">
         <div className="rounded-2xl border border-[#c69a2a]/30 bg-gradient-to-r from-[#1a1200]/60 to-[#0d1b2e]/60 p-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
           <div>
             <div className="flex items-center gap-2 mb-2">

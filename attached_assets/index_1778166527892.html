@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container-fluid px-4 px-lg-5 pt-2">
+
+
+  <h3 class="hero-title fw-black mb-5 text-center">
+    <span class="hero-subtitle">Welcome to</span><br>
+    <span class="gradient-text-animated hero-brand">Resume Based Personalised Multinomial </span><br>
+    <span class="hero-tagline">Ai Interview Evaluation System</span>
+  </h3>
+
+
+  <div class="row justify-content-center mb-5">
+    <div class="col-lg-11 col-xl-10">
+      <div class="premium-card p-5 border-start border-4 border-primary">
+        <h3 class="h3 fw-bold mb-3" style="color: var(--text-dark);">
+           About the System
+        </h3>
+        <p class="lh-lg mb-0" style="color: var(--text-light); font-size: 1.05rem;">
+        The Resume Based Personalised Multinomial AI Interview Evaluation System is an intelligent 
+  platform designed to assess candidates through adaptive, data-driven interview analysis.
+  Unlike traditional interview systems, this platform analyzes a candidate’s resume 
+  and dynamically generates relevant technical and behavioral questions tailored 
+  to their skills, experience, and domain expertise.
+        </p>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="row justify-content-center mb-5">
+    <div class="col-lg-11 col-xl-10">
+      <div class="text-center mb-4">
+        <h3 class="h3 fw-bold" style="color: var(--text-dark);">Team</h3>
+      </div>
+
+      <div class="row g-4">
+
+
+        <div class="col-md-4">
+          <div class="premium-card p-4 h-100 border-start border-4 border-primary text-center">
+            <p class="team-name">M Sai Kalyan - 22BCE8262</p>
+            <p class="team-meta">B. Tech CSE</p>
+            <p class="team-meta">VIT-AP University</p>
+            <p class="team-meta">Guntur, Andhra Pradesh, India</p>
+            <p class="team-email">saikalyan.matta@gmail.com</p>
+          </div>
+        </div>
+
+
+        <div class="col-md-4">
+          <div class="premium-card p-4 h-100 border-start border-4 border-warning text-center">
+            <p class="team-name">M.R.K.Murthy - 22BCE9316</p>
+            <p class="team-meta">B. Tech CSE</p>
+            <p class="team-meta">VIT-AP University</p>
+            <p class="team-meta">Guntur, Andhra Pradesh, India</p>
+            <p class="team-email">kittumakkapati@gmail.com</p>
+          </div>
+        </div>
+
+
+        <div class="col-md-4">
+          <div class="premium-card p-4 h-100 border-start border-4 border-success text-center">
+            <p class="team-name">K. Sai Deep - 22BCE8821</p>
+            <p class="team-meta">B. Tech CSE</p>
+            <p class="team-meta">VIT-AP University</p>
+            <p class="team-meta">Guntur, Andhra Pradesh, India</p>
+            <p class="team-email">saideep254@gmail.com</p>
+          </div>
+        </div>
+
+      </div>
+
+
+    </div>
+  </div>
+
+</div>
+
+</div>
+
+
+<style>
+  .hero-title {
+    line-height: 1.1;
+  }
+
+  .hero-subtitle {
+    font-size: 1.5rem;
+    color: var(--text-light);
+  }
+
+  .hero-brand {
+    font-size: 3.6rem;
+    font-weight: 900;
+  }
+
+  .hero-tagline {
+    font-size: 1.25rem;
+    color: var(--text-dark);
+  }
+
+  .team-name {
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin-bottom: 6px;
+    color: var(--text-dark);
+  }
+
+  .team-meta {
+    font-size: 0.95rem;
+    margin-bottom: 2px;
+    color: var(--text-light);
+  }
+
+  .team-email {
+    font-size: 0.9rem;
+    margin-top: 6px;
+    color: var(--text-light);
+  }
+
+  .team-name {
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin-bottom: 6px;
+    color: var(--text-dark);
+  }
+
+  .team-contact,
+  .team-email {
+    font-size: 0.95rem;
+    color: var(--text-light);
+  }
+
+  .premium-card,
+  .premium-login-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    box-shadow: 0 20px 40px var(--shadow-color);
+  }
+</style>
+
+<script>
+  document.getElementById('togglePassword')?.addEventListener('click', () => {
+    const input = document.getElementById('password');
+    input.type = input.type === 'password' ? 'text' : 'password';
+  });
+</script>
+
+{% endblock %}
