@@ -2,7 +2,7 @@ import { Link } from "wouter";
 import { useListInterviews, getListInterviewsQueryKey, useDeleteInterview } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Calendar, Trash2 } from "lucide-react";
+import { Loader2, Plus, Calendar, Trash2, Pencil } from "lucide-react";
 
 const STATUS_COLORS: Record<string, string> = {
   active: "bg-green-500/10 text-green-400 border-green-500/20",
@@ -19,7 +19,7 @@ export default function InterviewsList() {
   const handleDelete = (id: number, title: string) => {
     if (!confirm(`Delete "${title}"?`)) return;
     deleteInterview.mutate(
-      { params: { id } } as any,
+      { id },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListInterviewsQueryKey() });
@@ -58,7 +58,7 @@ export default function InterviewsList() {
         </div>
       ) : (
         <div className="border border-border rounded-xl bg-card overflow-hidden">
-          <div className="grid grid-cols-[1fr_120px_120px_80px_40px] gap-0 text-xs font-medium text-muted-foreground border-b border-border px-4 py-2.5">
+          <div className="grid grid-cols-[1fr_120px_120px_80px_64px] gap-0 text-xs font-medium text-muted-foreground border-b border-border px-4 py-2.5">
             <span>Title</span>
             <span>Difficulty</span>
             <span>Tone</span>
@@ -67,7 +67,7 @@ export default function InterviewsList() {
           </div>
           <div className="divide-y divide-border">
             {(interviews.data as any[]).map((interview: any) => (
-              <div key={interview.id} data-testid={`row-interview-${interview.id}`} className="grid grid-cols-[1fr_120px_120px_80px_40px] items-center px-4 py-3 hover:bg-secondary/20 transition-colors">
+              <div key={interview.id} data-testid={`row-interview-${interview.id}`} className="grid grid-cols-[1fr_120px_120px_80px_64px] items-center px-4 py-3 hover:bg-secondary/20 transition-colors">
                 <Link href={`/employer/interviews/${interview.id}`} className="text-sm font-medium text-foreground hover:text-primary transition-colors truncate">
                   {interview.title}
                 </Link>
@@ -77,6 +77,13 @@ export default function InterviewsList() {
                   {interview.status}
                 </span>
                 <div className="flex items-center gap-0.5">
+                  <Link
+                    href={`/employer/interviews/${interview.id}/edit`}
+                    data-testid={`button-edit-interview-${interview.id}`}
+                    className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors"
+                  >
+                    <Pencil size={13} />
+                  </Link>
                   <button
                     data-testid={`button-delete-interview-${interview.id}`}
                     onClick={() => handleDelete(interview.id, interview.title)}

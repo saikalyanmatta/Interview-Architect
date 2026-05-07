@@ -35,7 +35,7 @@ export default function InterviewDetail() {
     if (emails.length === 0) { toast({ title: "No valid emails", variant: "destructive" }); return; }
 
     addInvitations.mutate(
-      { params: { id: interviewId }, data: { emails } } as any,
+      { id: interviewId, data: { emails } },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetInterviewQueryKey(interviewId) });

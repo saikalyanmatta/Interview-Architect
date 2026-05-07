@@ -9,7 +9,23 @@ import {
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ChevronLeft, ChevronRight, CheckCircle2, Terminal } from "lucide-react";
+import { Loader2, ChevronRight, CheckCircle2, Terminal } from "lucide-react";
+import Editor from "@monaco-editor/react";
+
+const LANGUAGE_MAP: Record<string, string> = {
+  javascript: "javascript",
+  typescript: "typescript",
+  python: "python",
+  java: "java",
+  "c++": "cpp",
+  "c#": "csharp",
+  go: "go",
+  rust: "rust",
+  ruby: "ruby",
+  php: "php",
+  swift: "swift",
+  kotlin: "kotlin",
+};
 
 export default function CodingChallenge() {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -60,6 +76,8 @@ export default function CodingChallenge() {
 
   const questions = (codingQuestions.data as any[]) ?? [];
   const currentQuestion = questions[currentIdx];
+  const lang = session.data?.codingLanguage ?? "javascript";
+  const monacoLang = LANGUAGE_MAP[lang.toLowerCase()] ?? "javascript";
 
   const handleSubmitCode = () => {
     if (!code.trim()) {
@@ -70,13 +88,13 @@ export default function CodingChallenge() {
 
     submitCodingAnswer.mutate(
       {
-        params: { id: parseInt(sessionId) },
+        id: parseInt(sessionId),
         data: {
           codingQuestionId: currentQuestion.id,
           code,
-          language: session.data?.codingLanguage ?? "javascript",
+          language: lang,
         },
-      } as any,
+      },
       {
         onSuccess: () => {
           setSubmitted((s) => new Set([...s, currentIdx]));
@@ -91,7 +109,7 @@ export default function CodingChallenge() {
 
   const handleFinish = () => {
     completeSession.mutate(
-      { params: { id: parseInt(sessionId) } } as any,
+      { id: parseInt(sessionId) },
       {
         onSuccess: () => {
           setLocation(`/interview/${sessionId}/results`);
@@ -125,7 +143,7 @@ export default function CodingChallenge() {
           </div>
           <span className="text-sm font-medium text-foreground">Coding Challenge</span>
           <span className="text-xs text-muted-foreground border border-border px-2 py-0.5 rounded">
-            {session.data?.codingLanguage}
+            {lang}
           </span>
         </div>
         {questions.length > 1 && (
@@ -186,17 +204,37 @@ export default function CodingChallenge() {
           )}
         </div>
 
-        {/* Code editor */}
-        <div className="flex-1 flex flex-col">
-          <textarea
-            data-testid="textarea-code"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            placeholder={`// Write your ${session.data?.codingLanguage ?? "code"} solution here...\n`}
-            spellCheck={false}
-            className="flex-1 p-4 bg-background border-0 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:outline-none resize-none"
-          />
-          <div className="border-t border-border p-4 flex items-center gap-3">
+        {/* Monaco Code editor */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-hidden">
+            <Editor
+              height="100%"
+              language={monacoLang}
+              value={code}
+              onChange={(val) => setCode(val ?? "")}
+              theme="vs-dark"
+              options={{
+                fontSize: 14,
+                minimap: { enabled: false },
+                scrollBeyondLastLine: false,
+                automaticLayout: true,
+                tabSize: 2,
+                wordWrap: "on",
+                autoClosingBrackets: "always",
+                autoClosingQuotes: "always",
+                autoIndent: "full",
+                suggestOnTriggerCharacters: true,
+                quickSuggestions: true,
+                parameterHints: { enabled: true },
+                formatOnPaste: true,
+                formatOnType: true,
+                lineNumbers: "on",
+                renderLineHighlight: "line",
+                padding: { top: 12, bottom: 12 },
+              }}
+            />
+          </div>
+          <div className="border-t border-border p-4 flex items-center gap-3 bg-background">
             {submitted.has(currentIdx) ? (
               <div className="flex items-center gap-2 text-green-400 text-sm">
                 <CheckCircle2 size={16} />

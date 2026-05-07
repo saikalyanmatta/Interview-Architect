@@ -20,6 +20,7 @@ import JobProfileEdit from "@/pages/employer/job-profiles/edit";
 import InterviewsList from "@/pages/employer/interviews/list";
 import InterviewCreate from "@/pages/employer/interviews/create";
 import InterviewDetail from "@/pages/employer/interviews/detail";
+import InterviewEdit from "@/pages/employer/interviews/edit";
 import SessionReview from "@/pages/employer/interviews/session-review";
 
 import { EmployerLayout } from "@/components/employer-layout";
@@ -54,6 +55,7 @@ function Router() {
             <Route path="/employer/job-profiles/:id" component={JobProfileEdit} />
             <Route path="/employer/interviews" component={InterviewsList} />
             <Route path="/employer/interviews/new" component={InterviewCreate} />
+            <Route path="/employer/interviews/:id/edit" component={InterviewEdit} />
             <Route path="/employer/interviews/:id" component={InterviewDetail} />
             <Route path="/employer/interviews/:id/sessions/:sessionId" component={SessionReview} />
             <Route component={NotFound} />
