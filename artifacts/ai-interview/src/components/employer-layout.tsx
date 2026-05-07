@@ -10,16 +10,16 @@ const navItems = [
 ];
 
 export function EmployerLayout({ children }: { children: React.ReactNode }) {
-  const [location, setLocation] = useLocation();
-  const { user, isLoading, isAuthenticated, logout } = useAuth();
+  const [location] = useLocation();
+  const { user, isLoading, isAuthenticated, login, logout } = useAuth();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      setLocation("/employer/login");
+      login();
     }
   }, [isLoading, isAuthenticated]);
 
-  if (isLoading) {
+  if (isLoading || !isAuthenticated) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 size={24} className="animate-spin text-primary" />
@@ -27,16 +27,7 @@ export function EmployerLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!isAuthenticated) {
-    return null;
-  }
-
   const displayName = [user?.firstName, user?.lastName].filter(Boolean).join(" ") || user?.email || "User";
-
-  async function handleLogout() {
-    await logout();
-    setLocation("/employer/login");
-  }
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -82,7 +73,7 @@ export function EmployerLayout({ children }: { children: React.ReactNode }) {
           </div>
           <button
             data-testid="button-logout"
-            onClick={handleLogout}
+            onClick={logout}
             className="flex items-center gap-3 px-3 py-2 w-full rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
           >
             <LogOut size={16} />

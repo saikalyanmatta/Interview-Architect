@@ -26,11 +26,9 @@ const OIDC_COOKIE_TTL = 10 * 60 * 1000;
 const router: IRouter = Router();
 
 function getOrigin(req: Request): string {
-  // Dev environment
   if (process.env.REPLIT_DEV_DOMAIN) {
     return `https://${process.env.REPLIT_DEV_DOMAIN}`;
   }
-  // Production deployment — REPLIT_DOMAINS is the canonical deployed domain
   if (process.env.REPLIT_DOMAINS) {
     const primary = process.env.REPLIT_DOMAINS.split(",")[0].trim();
     return `https://${primary}`;
@@ -96,8 +94,6 @@ async function upsertUser(claims: Record<string, unknown>) {
       .returning();
     return user;
   } catch {
-    // Email unique constraint violated — another record already has this email.
-    // Look up by email and return that user.
     if (userData.email) {
       const [existing] = await db
         .select()
@@ -164,8 +160,6 @@ router.get("/login", async (req: Request, res: Response) => {
   res.redirect(redirectTo.href);
 });
 
-// Query params are not validated because the OIDC provider may include
-// parameters not expressed in the schema.
 router.get("/callback", async (req: Request, res: Response) => {
   const config = await getOidcConfig();
   const callbackUrl = `${getOrigin(req)}/api/callback`;
@@ -221,6 +215,7 @@ router.get("/callback", async (req: Request, res: Response) => {
       firstName: dbUser.firstName,
       lastName: dbUser.lastName,
       profileImageUrl: dbUser.profileImageUrl,
+      role: dbUser.role,
     },
     access_token: tokens.access_token,
     refresh_token: tokens.refresh_token,
@@ -291,6 +286,7 @@ router.post(
           firstName: dbUser.firstName,
           lastName: dbUser.lastName,
           profileImageUrl: dbUser.profileImageUrl,
+          role: dbUser.role,
         },
         access_token: tokens.access_token,
         refresh_token: tokens.refresh_token,
