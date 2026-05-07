@@ -13,6 +13,44 @@ export interface ErrorResponse {
   error: string;
 }
 
+export interface LoginBody {
+  email: string;
+  /** @minLength 1 */
+  password: string;
+}
+
+export type RegisterBodyRole =
+  (typeof RegisterBodyRole)[keyof typeof RegisterBodyRole];
+
+export const RegisterBodyRole = {
+  employer: "employer",
+  candidate: "candidate",
+} as const;
+
+export interface RegisterBody {
+  /** @minLength 1 */
+  name: string;
+  email: string;
+  /** @minLength 8 */
+  password: string;
+  role: RegisterBodyRole;
+}
+
+export interface SimpleUser {
+  id: string;
+  /** @nullable */
+  email: string | null;
+  /** @nullable */
+  name: string | null;
+  /** @nullable */
+  role: string | null;
+}
+
+export interface AuthTokenResponse {
+  token: string;
+  user: SimpleUser;
+}
+
 export interface AuthUser {
   id: string;
   /** @nullable */

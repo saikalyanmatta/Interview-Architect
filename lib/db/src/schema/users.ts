@@ -3,6 +3,8 @@ import { pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
 export const usersTable = pgTable("users", {
   id: varchar("id").primaryKey(),
   email: varchar("email").unique(),
+  name: varchar("name"),
+  passwordHash: varchar("password_hash"),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),

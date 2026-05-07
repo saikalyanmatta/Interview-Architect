@@ -125,6 +125,74 @@ paths:
       responses:
         '302':
           description: Redirect to the OIDC provider logout URL.
+  /auth/login:
+    post:
+      tags: [Auth]
+      operationId: login
+      summary: Login with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginBody'
+      responses:
+        '200':
+          description: Login successful.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+        '401':
+          description: Invalid credentials.
+
+  /auth/register:
+    post:
+      tags: [Auth]
+      operationId: register
+      summary: Register a new employer account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterBody'
+      responses:
+        '201':
+          description: Registration successful.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+        '400':
+          description: Validation error or email taken.
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      operationId: logout
+      summary: Logout current session
+      responses:
+        '204':
+          description: Logged out.
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      operationId: getMe
+      summary: Get current authenticated user
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationSessionHeader'
+      responses:
+        '200':
+          description: Current user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleUser'
+        '401':
+          description: Unauthorized.
+
   /mobile-auth/token-exchange:
     post:
       tags: [Auth]
@@ -897,6 +965,56 @@ components:
           type: string
       required:
         - error
+
+    LoginBody:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 1
+
+    RegisterBody:
+      type: object
+      required: [name, email, password, role]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        role:
+          type: string
+          enum: [employer, candidate]
+
+    SimpleUser:
+      type: object
+      required: [id, email, name, role]
+      properties:
+        id:
+          type: string
+        email:
+          type: [string, 'null']
+        name:
+          type: [string, 'null']
+        role:
+          type: [string, 'null']
+
+    AuthTokenResponse:
+      type: object
+      required: [token, user]
+      properties:
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/SimpleUser'
 
     # Auth (Replit OIDC)
     AuthUser:

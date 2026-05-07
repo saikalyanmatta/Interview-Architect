@@ -98,6 +98,55 @@ export const LogoutBrowserSessionHeader = zod.object({
 });
 
 /**
+ * @summary Login with email and password
+ */
+
+export const LoginBody = zod.object({
+  email: zod.string().email(),
+  password: zod.string().min(1),
+});
+
+export const LoginResponse = zod.object({
+  token: zod.string(),
+  user: zod.object({
+    id: zod.string(),
+    email: zod.string().nullable(),
+    name: zod.string().nullable(),
+    role: zod.string().nullable(),
+  }),
+});
+
+/**
+ * @summary Register a new employer account
+ */
+
+export const registerBodyPasswordMin = 8;
+
+export const RegisterBody = zod.object({
+  name: zod.string().min(1),
+  email: zod.string().email(),
+  password: zod.string().min(registerBodyPasswordMin),
+  role: zod.enum(["employer", "candidate"]),
+});
+
+/**
+ * @summary Get current authenticated user
+ */
+export const GetMeHeader = zod.object({
+  Authorization: zod
+    .string()
+    .optional()
+    .describe("Opaque session token — `Bearer <sid>`."),
+});
+
+export const GetMeResponse = zod.object({
+  id: zod.string(),
+  email: zod.string().nullable(),
+  name: zod.string().nullable(),
+  role: zod.string().nullable(),
+});
+
+/**
  * @summary Exchange a mobile OIDC code for a session token
  */
 
