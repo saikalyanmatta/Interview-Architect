@@ -73,18 +73,34 @@ async function upsertUser(claims: Record<string, unknown>) {
       | null,
   };
 
-  const [user] = await db
-    .insert(usersTable)
-    .values(userData)
-    .onConflictDoUpdate({
-      target: usersTable.id,
-      set: {
-        ...userData,
-        updatedAt: new Date(),
-      },
-    })
-    .returning();
-  return user;
+  try {
+    const [user] = await db
+      .insert(usersTable)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: usersTable.id,
+        set: {
+          email: userData.email,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          profileImageUrl: userData.profileImageUrl,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
+  } catch {
+    // Email unique constraint violated — another record already has this email.
+    // Look up by email and return that user.
+    if (userData.email) {
+      const [existing] = await db
+        .select()
+        .from(usersTable)
+        .where(eq(usersTable.email, userData.email));
+      if (existing) return existing;
+    }
+    throw new Error("Failed to upsert user");
+  }
 }
 
 router.get("/auth/user", (req: Request, res: Response) => {
