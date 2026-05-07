@@ -1,4 +1,5 @@
 import { Link, useLocation } from "wouter";
+import { useEffect } from "react";
 import { useAuth } from "@workspace/replit-auth-web";
 import { LayoutDashboard, Briefcase, Calendar, LogOut, Loader2 } from "lucide-react";
 
@@ -10,7 +11,13 @@ const navItems = [
 
 export function EmployerLayout({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
-  const { user, isLoading, isAuthenticated, login, logout } = useAuth();
+  const { user, isLoading, isAuthenticated, logout } = useAuth();
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      setLocation("/employer/login");
+    }
+  }, [isLoading, isAuthenticated]);
 
   if (isLoading) {
     return (
@@ -21,22 +28,15 @@ export function EmployerLayout({ children }: { children: React.ReactNode }) {
   }
 
   if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-6">
-        <div className="text-center">
-          <p className="text-foreground font-medium mb-4">Sign in to access the employer portal</p>
-          <button
-            onClick={login}
-            className="px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg text-sm font-medium transition-colors"
-          >
-            Sign in with Replit
-          </button>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   const displayName = [user?.firstName, user?.lastName].filter(Boolean).join(" ") || user?.email || "User";
+
+  async function handleLogout() {
+    await logout();
+    setLocation("/employer/login");
+  }
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -82,7 +82,7 @@ export function EmployerLayout({ children }: { children: React.ReactNode }) {
           </div>
           <button
             data-testid="button-logout"
-            onClick={logout}
+            onClick={handleLogout}
             className="flex items-center gap-3 px-3 py-2 w-full rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
           >
             <LogOut size={16} />

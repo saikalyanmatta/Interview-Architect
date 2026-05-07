@@ -118,14 +118,14 @@ function formatDate(iso: string) {
 
 export default function CandidateHistory() {
   const [, setLocation] = useLocation();
-  const { isAuthenticated, isLoading, login } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const [sessions, setSessions] = useState<PastSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      login();
+      setLocation("/employer/login");
       return;
     }
     if (!isAuthenticated) return;

@@ -1,48 +1,112 @@
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type Request, type Response } from "express";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { RegisterBody, LoginBody } from "@workspace/api-zod";
-import { logger } from "../lib/logger";
+import { GetCurrentAuthUserResponse } from "@workspace/api-zod";
+import {
+  clearSession,
+  getSessionId,
+  createSession,
+  SESSION_COOKIE,
+  SESSION_TTL,
+} from "../lib/auth";
 
 const router: IRouter = Router();
 
-router.post("/auth/register", async (req, res): Promise<void> => {
-  const parsed = RegisterBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
+function setSessionCookie(res: Response, sid: string) {
+  res.cookie(SESSION_COOKIE, sid, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: SESSION_TTL,
+  });
+}
 
-  const { email, password, name, role } = parsed.data;
-
-  const [existing] = await db.select().from(usersTable).where(eq(usersTable.email, email));
-  if (existing) {
-    res.status(400).json({ error: "Email already registered" });
-    return;
-  }
-
-  const passwordHash = await bcrypt.hash(password, 10);
-  const [user] = await db.insert(usersTable).values({ email, passwordHash, name, role }).returning();
-
-  const { passwordHash: _, ...userOut } = user;
-
-  const token = Buffer.from(JSON.stringify({ id: user.id, email: user.email, role: user.role })).toString("base64");
-
-  res.status(201).json({ user: userOut, token });
+router.get("/auth/user", (req: Request, res: Response) => {
+  res.json(
+    GetCurrentAuthUserResponse.parse({
+      user: req.isAuthenticated() ? req.user : null,
+    }),
+  );
 });
 
-router.post("/auth/login", async (req, res): Promise<void> => {
-  const parsed = LoginBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
+router.post("/auth/register", async (req: Request, res: Response) => {
+  const { email, password, firstName, lastName } = req.body as {
+    email?: string;
+    password?: string;
+    firstName?: string;
+    lastName?: string;
+  };
+
+  if (!email || !password) {
+    res.status(400).json({ error: "Email and password are required" });
     return;
   }
 
-  const { email, password } = parsed.data;
+  if (password.length < 1) {
+    res.status(400).json({ error: "Password cannot be empty" });
+    return;
+  }
 
-  const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email));
-  if (!user) {
+  const emailLower = email.trim().toLowerCase();
+
+  const [existing] = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.email, emailLower));
+
+  if (existing) {
+    res.status(409).json({ error: "An account with this email already exists" });
+    return;
+  }
+
+  const passwordHash = await bcrypt.hash(password, 8);
+  const id = crypto.randomUUID();
+
+  const [user] = await db
+    .insert(usersTable)
+    .values({
+      id,
+      email: emailLower,
+      passwordHash,
+      firstName: firstName?.trim() || null,
+      lastName: lastName?.trim() || null,
+      role: "employer",
+    })
+    .returning();
+
+  const sessionUser = {
+    id: user.id,
+    email: user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    profileImageUrl: user.profileImageUrl,
+    role: user.role,
+  };
+
+  const sid = await createSession({ user: sessionUser });
+  setSessionCookie(res, sid);
+  res.status(201).json(GetCurrentAuthUserResponse.parse({ user: sessionUser }));
+});
+
+router.post("/auth/login", async (req: Request, res: Response) => {
+  const { email, password } = req.body as { email?: string; password?: string };
+
+  if (!email || !password) {
+    res.status(400).json({ error: "Email and password are required" });
+    return;
+  }
+
+  const emailLower = email.trim().toLowerCase();
+
+  const [user] = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.email, emailLower));
+
+  if (!user || !user.passwordHash) {
     res.status(401).json({ error: "Invalid email or password" });
     return;
   }
@@ -53,58 +117,24 @@ router.post("/auth/login", async (req, res): Promise<void> => {
     return;
   }
 
-  const { passwordHash: _, ...userOut } = user;
-  const token = Buffer.from(JSON.stringify({ id: user.id, email: user.email, role: user.role })).toString("base64");
+  const sessionUser = {
+    id: user.id,
+    email: user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    profileImageUrl: user.profileImageUrl,
+    role: user.role,
+  };
 
-  res.json({ user: userOut, token });
+  const sid = await createSession({ user: sessionUser });
+  setSessionCookie(res, sid);
+  res.json(GetCurrentAuthUserResponse.parse({ user: sessionUser }));
 });
 
-router.post("/auth/logout", async (_req, res): Promise<void> => {
-  res.sendStatus(204);
+router.post("/auth/logout", async (req: Request, res: Response) => {
+  const sid = getSessionId(req);
+  await clearSession(res, sid);
+  res.json({ success: true });
 });
-
-router.get("/auth/me", async (req, res): Promise<void> => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith("Bearer ")) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
-  }
-
-  try {
-    const token = authHeader.slice(7);
-    const payload = JSON.parse(Buffer.from(token, "base64").toString());
-    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, payload.id));
-    if (!user) {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-    const { passwordHash: _, ...userOut } = user;
-    res.json(userOut);
-  } catch {
-    res.status(401).json({ error: "Unauthorized" });
-  }
-});
-
-export async function requireAuth(req: any, res: any, next: any): Promise<void> {
-  const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith("Bearer ")) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
-  }
-  try {
-    const token = authHeader.slice(7);
-    const payload = JSON.parse(Buffer.from(token, "base64").toString());
-    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, payload.id));
-    if (!user) {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-    const { passwordHash: _, ...userOut } = user;
-    req.user = userOut;
-    next();
-  } catch {
-    res.status(401).json({ error: "Unauthorized" });
-  }
-}
 
 export default router;

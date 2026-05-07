@@ -222,7 +222,7 @@ function Footer() {
 
 export default function CandidateLanding() {
   const [, setLocation] = useLocation();
-  const { user, isLoading, isAuthenticated, login, logout } = useAuth();
+  const { user, isLoading, isAuthenticated, logout } = useAuth();
   const [interviews, setInterviews] = useState<PublicInterview[]>([]);
   const [loadingInterviews, setLoadingInterviews] = useState(false);
 
@@ -261,7 +261,7 @@ export default function CandidateLanding() {
         <NavBar
           right={
             <button
-              onClick={login}
+              onClick={() => setLocation("/employer/login")}
               className="flex items-center gap-2 px-5 py-2 rounded-xl font-semibold text-sm transition-all"
               style={{
                 background: `linear-gradient(135deg, ${C.primary}, ${C.secondary})`,
@@ -321,7 +321,7 @@ export default function CandidateLanding() {
               History
             </button>
             <button
-              onClick={logout}
+              onClick={async () => { await logout(); }}
               className="flex items-center gap-2 px-5 py-2 rounded-xl font-semibold text-sm transition-all"
               style={{
                 background: `linear-gradient(135deg, ${C.primary}, ${C.secondary})`,
