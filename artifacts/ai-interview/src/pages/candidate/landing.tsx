@@ -313,7 +313,7 @@ export default function CandidateLanding() {
               Dashboard
             </button>
             <button
-              onClick={() => document.getElementById("employer-interviews")?.scrollIntoView({ behavior: "smooth" })}
+              onClick={() => setLocation("/history")}
               className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all"
               style={{ border: `1px solid ${C.border}`, color: C.textLight, background: "transparent" }}
             >

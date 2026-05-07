@@ -581,6 +581,42 @@ router.post("/candidate/sessions/:id/complete", async (req, res): Promise<void> 
   res.json({ session: updatedSession, answers, codingAnswers, skillScores, overallFeedback });
 });
 
+// Get current user's past sessions
+router.get("/candidate/my-sessions", async (req, res): Promise<void> => {
+  if (!req.isAuthenticated()) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+
+  const email = req.user.email;
+  if (!email) {
+    res.json([]);
+    return;
+  }
+
+  const { eq, desc } = await import("drizzle-orm");
+  const userSessions = await db
+    .select()
+    .from(sessionsTable)
+    .where(eq(sessionsTable.candidateEmail, email))
+    .orderBy(desc(sessionsTable.startedAt));
+
+  const result = await Promise.all(
+    userSessions.map(async (session) => {
+      const [interview] = await db
+        .select()
+        .from(interviewsTable)
+        .where(eq(interviewsTable.id, session.interviewId));
+      return {
+        ...session,
+        interviewTitle: interview?.title ?? "Practice Interview",
+      };
+    })
+  );
+
+  res.json(result);
+});
+
 // Get session results
 router.get("/candidate/sessions/:id/results", async (req, res): Promise<void> => {
   const params = GetSessionResultsParams.safeParse(req.params);

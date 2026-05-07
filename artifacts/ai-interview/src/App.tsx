@@ -10,6 +10,7 @@ import CustomizeInterview from "@/pages/candidate/customize";
 import InterviewRoom from "@/pages/candidate/interview-room";
 import CodingChallenge from "@/pages/candidate/coding-challenge";
 import InterviewResults from "@/pages/candidate/results";
+import CandidateHistory from "@/pages/candidate/history";
 
 import EmployerLogin from "@/pages/employer/login";
 import EmployerRegister from "@/pages/employer/register";
@@ -37,6 +38,7 @@ function Router() {
       <Route path="/interview/:sessionId" component={InterviewRoom} />
       <Route path="/interview/:sessionId/coding" component={CodingChallenge} />
       <Route path="/interview/:sessionId/results" component={InterviewResults} />
+      <Route path="/history" component={CandidateHistory} />
 
       {/* EMPLOYER PORTAL AUTH */}
       <Route path="/employer">
