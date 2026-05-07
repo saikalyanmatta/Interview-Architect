@@ -26,8 +26,14 @@ const OIDC_COOKIE_TTL = 10 * 60 * 1000;
 const router: IRouter = Router();
 
 function getOrigin(req: Request): string {
+  // Dev environment
   if (process.env.REPLIT_DEV_DOMAIN) {
     return `https://${process.env.REPLIT_DEV_DOMAIN}`;
+  }
+  // Production deployment — REPLIT_DOMAINS is the canonical deployed domain
+  if (process.env.REPLIT_DOMAINS) {
+    const primary = process.env.REPLIT_DOMAINS.split(",")[0].trim();
+    return `https://${primary}`;
   }
   const proto = req.headers["x-forwarded-proto"] || "https";
   const host =
