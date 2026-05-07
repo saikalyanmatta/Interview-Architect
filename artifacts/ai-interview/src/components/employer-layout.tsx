@@ -10,12 +10,12 @@ const navItems = [
 ];
 
 export function EmployerLayout({ children }: { children: React.ReactNode }) {
-  const [location] = useLocation();
-  const { user, isLoading, isAuthenticated, login, logout } = useAuth();
+  const [location, setLocation] = useLocation();
+  const { user, isLoading, isAuthenticated, logout } = useAuth();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      login();
+      setLocation("/login");
     }
   }, [isLoading, isAuthenticated]);
 
@@ -29,9 +29,13 @@ export function EmployerLayout({ children }: { children: React.ReactNode }) {
 
   const displayName = [user?.firstName, user?.lastName].filter(Boolean).join(" ") || user?.email || "User";
 
+  async function handleLogout() {
+    await logout();
+    setLocation("/login");
+  }
+
   return (
     <div className="min-h-screen bg-background flex">
-      {/* Sidebar */}
       <aside className="w-60 border-r border-border flex flex-col shrink-0">
         <div className="p-6 border-b border-border">
           <div className="flex items-center gap-2">
@@ -47,18 +51,11 @@ export function EmployerLayout({ children }: { children: React.ReactNode }) {
           {navItems.map(({ href, label, icon: Icon }) => {
             const active = location.startsWith(href);
             return (
-              <Link
-                key={href}
-                href={href}
-                data-testid={`nav-${label.toLowerCase().replace(" ", "-")}`}
+              <Link key={href} href={href}
                 className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
-                  active
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                }`}
-              >
-                <Icon size={16} />
-                {label}
+                  active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                }`}>
+                <Icon size={16} />{label}
               </Link>
             );
           })}
@@ -67,25 +64,16 @@ export function EmployerLayout({ children }: { children: React.ReactNode }) {
         <div className="p-3 border-t border-border">
           <div className="px-3 py-2 mb-1">
             <p className="text-xs font-medium text-foreground truncate">{displayName}</p>
-            {user?.email && (
-              <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-            )}
+            {user?.email && <p className="text-xs text-muted-foreground truncate">{user.email}</p>}
           </div>
-          <button
-            data-testid="button-logout"
-            onClick={logout}
-            className="flex items-center gap-3 px-3 py-2 w-full rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-          >
-            <LogOut size={16} />
-            Sign out
+          <button onClick={handleLogout}
+            className="flex items-center gap-3 px-3 py-2 w-full rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">
+            <LogOut size={16} />Sign out
           </button>
         </div>
       </aside>
 
-      {/* Main */}
-      <main className="flex-1 overflow-auto">
-        {children}
-      </main>
+      <main className="flex-1 overflow-auto">{children}</main>
     </div>
   );
 }

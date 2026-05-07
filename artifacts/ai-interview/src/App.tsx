@@ -4,6 +4,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 
+import LoginPage from "@/pages/login";
+import RegisterPage from "@/pages/register";
+
 import CandidateLanding from "@/pages/candidate/landing";
 import CandidateSetup from "@/pages/candidate/setup";
 import CustomizeInterview from "@/pages/candidate/customize";
@@ -12,8 +15,6 @@ import CodingChallenge from "@/pages/candidate/coding-challenge";
 import InterviewResults from "@/pages/candidate/results";
 import CandidateHistory from "@/pages/candidate/history";
 
-import EmployerLogin from "@/pages/employer/login";
-import EmployerRegister from "@/pages/employer/register";
 import EmployerDashboard from "@/pages/employer/dashboard";
 import JobProfilesList from "@/pages/employer/job-profiles/list";
 import JobProfileCreate from "@/pages/employer/job-profiles/create";
@@ -31,7 +32,11 @@ const queryClient = new QueryClient();
 function Router() {
   return (
     <Switch>
-      {/* CANDIDATE PORTAL */}
+      {/* AUTH */}
+      <Route path="/login" component={LoginPage} />
+      <Route path="/register" component={RegisterPage} />
+
+      {/* CANDIDATE */}
       <Route path="/" component={CandidateLanding} />
       <Route path="/interview/customize" component={CustomizeInterview} />
       <Route path="/interview/setup/:interviewId" component={CandidateSetup} />
@@ -40,12 +45,16 @@ function Router() {
       <Route path="/interview/:sessionId/results" component={InterviewResults} />
       <Route path="/history" component={CandidateHistory} />
 
-      {/* EMPLOYER PORTAL AUTH */}
+      {/* EMPLOYER — redirect old auth routes */}
       <Route path="/employer">
         <Redirect to="/employer/dashboard" />
       </Route>
-      <Route path="/employer/login" component={EmployerLogin} />
-      <Route path="/employer/register" component={EmployerRegister} />
+      <Route path="/employer/login">
+        <Redirect to="/login" />
+      </Route>
+      <Route path="/employer/register">
+        <Redirect to="/register" />
+      </Route>
 
       {/* EMPLOYER PORTAL PROTECTED */}
       <Route path="/employer/*">
