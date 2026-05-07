@@ -1,6 +1,6 @@
-import { Router, type IRouter } from "express";
-import { db, interviewsTable, invitationsTable, sessionsTable, questionsTable, answersTable, codingQuestionsTable, codingAnswersTable, jobProfilesTable, jobProfileSkillsTable } from "@workspace/db";
-import { eq, and } from "drizzle-orm";
+import { Router, type IRouter, type Request, type Response } from "express";
+import { db, interviewsTable, sessionsTable, questionsTable, answersTable, codingQuestionsTable, codingAnswersTable, jobProfilesTable, jobProfileSkillsTable } from "@workspace/db";
+import { eq } from "drizzle-orm";
 import {
   CheckCandidateAccessBody,
   CreateSessionBody,
@@ -52,21 +52,53 @@ router.post("/candidate/parse-resume", async (req, res): Promise<void> => {
   }
 });
 
-// Check if candidate has access
+// List public active interviews for candidates to browse
+router.get("/candidate/interviews", async (req, res): Promise<void> => {
+  const activeInterviews = await db.select().from(interviewsTable)
+    .where(eq(interviewsTable.status, "active"));
+
+  const result = await Promise.all(activeInterviews.map(async (interview) => {
+    const [profile] = await db.select().from(jobProfilesTable).where(eq(jobProfilesTable.id, interview.jobProfileId));
+    const skills = await db.select().from(jobProfileSkillsTable).where(eq(jobProfileSkillsTable.jobProfileId, interview.jobProfileId));
+    return {
+      id: interview.id,
+      title: interview.title,
+      jobProfileTitle: profile?.title ?? "",
+      difficulty: interview.difficulty,
+      interviewerTone: interview.interviewerTone,
+      numBehavioralQuestions: interview.numBehavioralQuestions,
+      numTechnicalQuestions: interview.numTechnicalQuestions,
+      numCodingQuestions: interview.numCodingQuestions,
+      skills: skills.map((s) => s.skillName),
+    };
+  }));
+
+  res.json(result);
+});
+
+// Get single public interview details
+router.get("/candidate/interviews/:id", async (req, res): Promise<void> => {
+  const id = parseInt(req.params.id);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid interview ID" }); return; }
+
+  const [interview] = await db.select().from(interviewsTable).where(eq(interviewsTable.id, id));
+  if (!interview || interview.status !== "active") { res.status(404).json({ error: "Interview not found" }); return; }
+
+  const [profile] = await db.select().from(jobProfilesTable).where(eq(jobProfilesTable.id, interview.jobProfileId));
+  const skills = await db.select().from(jobProfileSkillsTable).where(eq(jobProfileSkillsTable.jobProfileId, interview.jobProfileId));
+
+  res.json({ interview, jobProfile: { ...profile, skills } });
+});
+
+// Check if candidate has access (kept for backward compat, now always grants access if interview is active)
 router.post("/candidate/check-access", async (req, res): Promise<void> => {
   const parsed = CheckCandidateAccessBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
-  const { interviewId, email } = parsed.data;
-  const normalizedEmail = email.trim().toLowerCase();
+  const { interviewId } = parsed.data;
 
   const [interview] = await db.select().from(interviewsTable).where(eq(interviewsTable.id, interviewId));
-  if (!interview) { res.json({ hasAccess: false }); return; }
-  if (interview.status !== "active") { res.json({ hasAccess: false }); return; }
-
-  const [invitation] = await db.select().from(invitationsTable)
-    .where(and(eq(invitationsTable.interviewId, interviewId), eq(invitationsTable.email, normalizedEmail)));
-  if (!invitation) { res.json({ hasAccess: false }); return; }
+  if (!interview || interview.status !== "active") { res.json({ hasAccess: false }); return; }
 
   const [profile] = await db.select().from(jobProfilesTable).where(eq(jobProfilesTable.id, interview.jobProfileId));
   const skills = await db.select().from(jobProfileSkillsTable).where(eq(jobProfileSkillsTable.jobProfileId, interview.jobProfileId));
@@ -80,21 +112,24 @@ router.post("/candidate/sessions", async (req, res): Promise<void> => {
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
   const { interviewId, candidateEmail, candidateName, difficulty, interviewerTone, codingLanguage } = parsed.data;
-  const normalizedEmail = candidateEmail.trim().toLowerCase();
+
+  const emailToUse = req.isAuthenticated()
+    ? (req.user.email ?? candidateEmail ?? "").trim().toLowerCase()
+    : candidateEmail.trim().toLowerCase();
+  const nameToUse = req.isAuthenticated()
+    ? ([req.user.firstName, req.user.lastName].filter(Boolean).join(" ") || candidateName)
+    : candidateName;
 
   const [interview] = await db.select().from(interviewsTable).where(eq(interviewsTable.id, interviewId));
   if (!interview) { res.status(404).json({ error: "Interview not found" }); return; }
-
-  const [invitation] = await db.select().from(invitationsTable)
-    .where(and(eq(invitationsTable.interviewId, interviewId), eq(invitationsTable.email, normalizedEmail)));
-  if (!invitation) { res.status(403).json({ error: "Not invited to this interview" }); return; }
+  if (interview.status !== "active") { res.status(403).json({ error: "This interview is not currently active" }); return; }
 
   const totalQuestions = 1 + interview.numBehavioralQuestions + interview.numTechnicalQuestions;
 
   const [session] = await db.insert(sessionsTable).values({
     interviewId,
-    candidateEmail: normalizedEmail,
-    candidateName,
+    candidateEmail: emailToUse,
+    candidateName: nameToUse,
     difficulty: difficulty as any,
     interviewerTone: interviewerTone as any,
     codingLanguage: codingLanguage ?? interview.allowedCodingLanguages.split(",")[0] ?? "javascript",
@@ -444,10 +479,6 @@ router.post("/candidate/sessions/:id/complete", async (req, res): Promise<void> 
     overallFeedback,
     completedAt: new Date(),
   }).where(eq(sessionsTable.id, session.id)).returning();
-
-  // Update invitation status
-  await db.update(invitationsTable).set({ status: "completed" })
-    .where(and(eq(invitationsTable.interviewId, session.interviewId), eq(invitationsTable.email, session.candidateEmail)));
 
   const skillScores = skills.map((skill) => {
     const relevantAnswers = answers.filter((a) => {

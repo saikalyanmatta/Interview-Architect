@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useParams } from "wouter";
-import { useCheckCandidateAccess, useCreateSession } from "@workspace/api-client-react";
+import { useCreateSession } from "@workspace/api-client-react";
+import { useAuth } from "@workspace/replit-auth-web";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ArrowRight, ChevronDown } from "lucide-react";
-import { useEffect } from "react";
+import { Loader2, ArrowRight, ChevronDown, LogIn } from "lucide-react";
 
 const DIFFICULTIES = [
   { value: "easy", label: "Easy", desc: "Foundational questions, gentle pace" },
@@ -22,50 +22,72 @@ export default function CandidateSetup() {
   const { interviewId } = useParams<{ interviewId: string }>();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user, isLoading: authLoading, isAuthenticated, login } = useAuth();
 
-  const params = new URLSearchParams(window.location.search);
-  const email = params.get("email") ?? "";
-
-  const [name, setName] = useState("");
   const [difficulty, setDifficulty] = useState("medium");
   const [tone, setTone] = useState("professional");
   const [language, setLanguage] = useState("javascript");
 
-  const checkAccess = useCheckCandidateAccess();
   const [interviewData, setInterviewData] = useState<any>(null);
+  const [loadingInterview, setLoadingInterview] = useState(false);
   const createSession = useCreateSession();
 
   useEffect(() => {
-    if (interviewId && email) {
-      checkAccess.mutate(
-        { data: { interviewId: parseInt(interviewId), email } },
-        {
-          onSuccess: (data) => {
-            if (!data.hasAccess) {
-              toast({ title: "Access denied", variant: "destructive" });
-              setLocation("/");
-              return;
-            }
-            setInterviewData(data);
-            const langs = (data.interview as any)?.allowedCodingLanguages?.split(",") ?? ["javascript"];
-            setLanguage(langs[0] ?? "javascript");
-          },
-        }
-      );
+    if (interviewId && isAuthenticated) {
+      setLoadingInterview(true);
+      fetch(`/api/candidate/interviews/${interviewId}`, { credentials: "include" })
+        .then((r) => {
+          if (!r.ok) throw new Error("Not found");
+          return r.json();
+        })
+        .then((data) => {
+          setInterviewData(data);
+          const langs = data.interview?.allowedCodingLanguages?.split(",") ?? ["javascript"];
+          setLanguage(langs[0] ?? "javascript");
+        })
+        .catch(() => {
+          toast({ title: "Interview not found", variant: "destructive" });
+          setLocation("/");
+        })
+        .finally(() => setLoadingInterview(false));
     }
-  }, []);
+  }, [interviewId, isAuthenticated]);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 size={24} className="animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <div className="text-center">
+          <p className="text-foreground font-medium mb-4">Sign in to start practicing</p>
+          <button
+            onClick={login}
+            className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg text-sm font-medium transition-colors mx-auto"
+          >
+            <LogIn size={16} />
+            Sign in with Replit
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const candidateEmail = user?.email ?? "";
+  const candidateName = [user?.firstName, user?.lastName].filter(Boolean).join(" ") || user?.email?.split("@")[0] || "Candidate";
 
   const handleStart = () => {
-    if (!name.trim()) {
-      toast({ title: "Enter your name", variant: "destructive" });
-      return;
-    }
     createSession.mutate(
       {
         data: {
           interviewId: parseInt(interviewId),
-          candidateEmail: email,
-          candidateName: name,
+          candidateEmail,
+          candidateName,
           difficulty: difficulty as any,
           interviewerTone: tone as any,
           codingLanguage: language,
@@ -124,17 +146,13 @@ export default function CandidateSetup() {
         )}
 
         <div className="space-y-5">
-          {/* Name */}
-          <div>
-            <label className="block text-xs font-medium text-foreground mb-1.5">Your Full Name</label>
-            <input
-              data-testid="input-candidate-name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Jane Smith"
-              className="w-full px-3 py-2.5 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-            />
+          {/* Identity from Replit auth */}
+          <div className="flex items-center gap-3 px-4 py-3 rounded-lg border border-border bg-secondary/30">
+            <div className="flex-1">
+              <p className="text-xs text-muted-foreground">Signed in as</p>
+              <p className="text-sm font-medium text-foreground">{candidateName}</p>
+              {candidateEmail && <p className="text-xs text-muted-foreground">{candidateEmail}</p>}
+            </div>
           </div>
 
           {/* Difficulty */}
@@ -204,7 +222,7 @@ export default function CandidateSetup() {
           <button
             data-testid="button-start-interview"
             onClick={handleStart}
-            disabled={createSession.isPending || checkAccess.isPending}
+            disabled={createSession.isPending || loadingInterview}
             className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg text-sm font-medium transition-colors disabled:opacity-60"
           >
             {createSession.isPending ? (

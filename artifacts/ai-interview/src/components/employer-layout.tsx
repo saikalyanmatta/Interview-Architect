@@ -1,8 +1,6 @@
 import { Link, useLocation } from "wouter";
-import { useGetMe, getGetMeQueryKey, useLogout } from "@workspace/api-client-react";
-import { useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
-import { LayoutDashboard, Briefcase, Calendar, LogOut, ChevronRight } from "lucide-react";
+import { useAuth } from "@workspace/replit-auth-web";
+import { LayoutDashboard, Briefcase, Calendar, LogOut, Loader2 } from "lucide-react";
 
 const navItems = [
   { href: "/employer/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -12,38 +10,33 @@ const navItems = [
 
 export function EmployerLayout({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-  const me = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
-  const logout = useLogout();
+  const { user, isLoading, isAuthenticated, login, logout } = useAuth();
 
-  if (me.isLoading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        <Loader2 size={24} className="animate-spin text-primary" />
       </div>
     );
   }
 
-  if (me.isError || !me.data) {
-    setLocation("/employer/login");
-    return null;
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <div className="text-center">
+          <p className="text-foreground font-medium mb-4">Sign in to access the employer portal</p>
+          <button
+            onClick={login}
+            className="px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg text-sm font-medium transition-colors"
+          >
+            Sign in with Replit
+          </button>
+        </div>
+      </div>
+    );
   }
 
-  const handleLogout = () => {
-    logout.mutate(undefined, {
-      onSuccess: () => {
-        localStorage.removeItem("auth_token");
-        queryClient.clear();
-        setLocation("/employer/login");
-      },
-      onError: () => {
-        localStorage.removeItem("auth_token");
-        queryClient.clear();
-        setLocation("/employer/login");
-      },
-    });
-  };
+  const displayName = [user?.firstName, user?.lastName].filter(Boolean).join(" ") || user?.email || "User";
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -82,12 +75,14 @@ export function EmployerLayout({ children }: { children: React.ReactNode }) {
 
         <div className="p-3 border-t border-border">
           <div className="px-3 py-2 mb-1">
-            <p className="text-xs font-medium text-foreground truncate">{me.data.name}</p>
-            <p className="text-xs text-muted-foreground truncate">{me.data.email}</p>
+            <p className="text-xs font-medium text-foreground truncate">{displayName}</p>
+            {user?.email && (
+              <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+            )}
           </div>
           <button
             data-testid="button-logout"
-            onClick={handleLogout}
+            onClick={logout}
             className="flex items-center gap-3 px-3 py-2 w-full rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
           >
             <LogOut size={16} />
