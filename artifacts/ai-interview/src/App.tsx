@@ -6,6 +6,7 @@ import NotFound from "@/pages/not-found";
 
 import CandidateLanding from "@/pages/candidate/landing";
 import CandidateSetup from "@/pages/candidate/setup";
+import CustomizeInterview from "@/pages/candidate/customize";
 import InterviewRoom from "@/pages/candidate/interview-room";
 import CodingChallenge from "@/pages/candidate/coding-challenge";
 import InterviewResults from "@/pages/candidate/results";
@@ -30,6 +31,7 @@ function Router() {
     <Switch>
       {/* CANDIDATE PORTAL */}
       <Route path="/" component={CandidateLanding} />
+      <Route path="/interview/customize" component={CustomizeInterview} />
       <Route path="/interview/setup/:interviewId" component={CandidateSetup} />
       <Route path="/interview/:sessionId" component={InterviewRoom} />
       <Route path="/interview/:sessionId/coding" component={CodingChallenge} />

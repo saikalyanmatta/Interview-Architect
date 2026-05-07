@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@workspace/replit-auth-web";
-import { Brain, Mic, ChevronRight, Loader2, LogIn, Briefcase, Star } from "lucide-react";
+import { Brain, Mic, ChevronRight, Loader2, LogIn, Briefcase, Star, ArrowRight, Sparkles, FileText } from "lucide-react";
 
 interface PublicInterview {
   id: number;
@@ -107,23 +107,53 @@ export default function CandidateLanding() {
       </header>
 
       <main className="max-w-3xl mx-auto px-6 py-10">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-foreground">Practice Interviews</h2>
-          <p className="text-muted-foreground text-sm mt-1">
-            Choose an interview to practice and get AI-powered feedback on your answers.
+
+        {/* Hero CTA */}
+        <div className="mb-10 rounded-2xl border border-primary/20 bg-primary/5 p-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+          <div>
+            <h2 className="text-xl font-bold text-foreground mb-1">Start a Practice Interview</h2>
+            <p className="text-sm text-muted-foreground max-w-sm">
+              Upload your resume, customize settings, and get an AI-powered interview tailored to your target role.
+            </p>
+            <div className="flex items-center gap-4 mt-3">
+              <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                <FileText size={12} className="text-primary" /> Resume parsing
+              </span>
+              <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Sparkles size={12} className="text-primary" /> Adaptive AI
+              </span>
+              <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Star size={12} className="text-primary" /> Instant score
+              </span>
+            </div>
+          </div>
+          <button
+            onClick={() => setLocation("/interview/customize")}
+            className="shrink-0 flex items-center gap-2 px-5 py-3 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl text-sm font-semibold transition-colors whitespace-nowrap"
+          >
+            <ArrowRight size={16} />
+            Start Interview
+          </button>
+        </div>
+
+        {/* Employer-created interviews */}
+        <div className="mb-6">
+          <h3 className="text-base font-semibold text-foreground mb-1">Employer Interviews</h3>
+          <p className="text-muted-foreground text-sm">
+            Interviews published by employers you can join.
           </p>
         </div>
 
         {loadingInterviews ? (
-          <div className="flex items-center justify-center py-20">
+          <div className="flex items-center justify-center py-16">
             <Loader2 size={22} className="animate-spin text-primary" />
           </div>
         ) : interviews.length === 0 ? (
           <div className="border border-border rounded-xl p-10 text-center bg-card">
             <Briefcase size={32} className="text-muted-foreground mx-auto mb-3" />
-            <p className="text-foreground font-medium mb-1">No interviews available yet</p>
+            <p className="text-foreground font-medium mb-1">No employer interviews available yet</p>
             <p className="text-sm text-muted-foreground">
-              Employers will publish interviews here. Check back soon.
+              Use the "Start Interview" button above to practice on your own.
             </p>
           </div>
         ) : (

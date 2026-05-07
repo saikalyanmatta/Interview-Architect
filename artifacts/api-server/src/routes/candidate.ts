@@ -1,5 +1,5 @@
 import { Router, type IRouter, type Request, type Response } from "express";
-import { db, interviewsTable, sessionsTable, questionsTable, answersTable, codingQuestionsTable, codingAnswersTable, jobProfilesTable, jobProfileSkillsTable } from "@workspace/db";
+import { db, interviewsTable, sessionsTable, questionsTable, answersTable, codingQuestionsTable, codingAnswersTable, jobProfilesTable, jobProfileSkillsTable, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import {
   CheckCandidateAccessBody,
@@ -49,6 +49,93 @@ router.post("/candidate/parse-resume", async (req, res): Promise<void> => {
     });
   } catch (err) {
     res.status(500).json({ error: "Failed to parse resume" });
+  }
+});
+
+// Create a self-service practice interview session
+const PRACTICE_SYSTEM_USER_ID = "practice-system-user";
+
+router.post("/candidate/practice-sessions", async (req, res): Promise<void> => {
+  const {
+    targetRole = "Software Engineer",
+    skills = [],
+    difficulty = "medium",
+    interviewerTone = "professional",
+    numBehavioralQuestions = 2,
+    numTechnicalQuestions = 3,
+    numCodingQuestions = 1,
+    codingLanguage = "javascript",
+    adaptive = false,
+  } = req.body;
+
+  try {
+    // Ensure system user exists
+    await db.insert(usersTable).values({
+      id: PRACTICE_SYSTEM_USER_ID,
+      email: "system@interviewai.internal",
+      name: "InterviewAI System",
+      role: "system",
+    }).onConflictDoNothing();
+
+    // Create job profile for this practice session
+    const [jobProfile] = await db.insert(jobProfilesTable).values({
+      employerId: PRACTICE_SYSTEM_USER_ID,
+      title: targetRole,
+      description: `Practice interview for ${targetRole} role.`,
+    }).returning();
+
+    // Insert skills into job profile
+    if (Array.isArray(skills) && skills.length > 0) {
+      await db.insert(jobProfileSkillsTable).values(
+        skills.slice(0, 20).map((skill: string) => ({
+          jobProfileId: jobProfile.id,
+          skillName: String(skill).trim(),
+          proficiencyLevel: "intermediate" as const,
+          weightage: 10,
+        }))
+      );
+    }
+
+    // Create the interview
+    const [interview] = await db.insert(interviewsTable).values({
+      employerId: PRACTICE_SYSTEM_USER_ID,
+      jobProfileId: jobProfile.id,
+      title: `Practice: ${targetRole}`,
+      status: "active" as const,
+      difficulty: difficulty as any,
+      interviewerTone: interviewerTone as any,
+      numBehavioralQuestions: Math.max(0, Math.min(8, Number(numBehavioralQuestions))),
+      numTechnicalQuestions: Math.max(0, Math.min(8, Number(numTechnicalQuestions))),
+      numCodingQuestions: Math.max(0, Math.min(3, Number(numCodingQuestions))),
+      allowedCodingLanguages: codingLanguage,
+    }).returning();
+
+    // Create the session
+    const bNum = Math.max(0, Math.min(8, Number(numBehavioralQuestions)));
+    const tNum = Math.max(0, Math.min(8, Number(numTechnicalQuestions)));
+    const totalQuestions = 1 + bNum + tNum;
+
+    const candidateEmail = req.isAuthenticated()
+      ? (req.user.email ?? "candidate@practice")
+      : "candidate@practice";
+    const candidateName = req.isAuthenticated()
+      ? ([req.user.firstName, req.user.lastName].filter(Boolean).join(" ") || req.user.email?.split("@")[0] || "Candidate")
+      : "Candidate";
+
+    const [session] = await db.insert(sessionsTable).values({
+      interviewId: interview.id,
+      candidateEmail,
+      candidateName,
+      difficulty: difficulty as any,
+      interviewerTone: interviewerTone as any,
+      codingLanguage,
+      totalQuestions,
+      phase: "intro" as const,
+    }).returning();
+
+    res.status(201).json(session);
+  } catch (err: any) {
+    res.status(500).json({ error: "Failed to create practice session", detail: err?.message });
   }
 });
 
