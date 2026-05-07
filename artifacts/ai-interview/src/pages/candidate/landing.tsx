@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@workspace/replit-auth-web";
 import {
-  Brain,
+  Cat,
   Mic,
   ChevronRight,
   Loader2,
@@ -19,6 +19,7 @@ import {
   Mail,
   MapPin,
   GraduationCap,
+  Moon,
 } from "lucide-react";
 
 interface PublicInterview {
@@ -69,7 +70,18 @@ const TEAM = [
   },
 ];
 
-function SharedSections({ isAuthenticated }: { isAuthenticated: boolean }) {
+function NavLogo() {
+  return (
+    <div className="flex items-center gap-2.5">
+      <Cat size={26} className="text-[#3b82f6]" strokeWidth={1.8} />
+      <span className="font-bold text-[#3b82f6] text-base tracking-tight">
+        Ai Interview Evaluation System
+      </span>
+    </div>
+  );
+}
+
+function SharedSections() {
   return (
     <>
       {/* About the System */}
@@ -77,10 +89,11 @@ function SharedSections({ isAuthenticated }: { isAuthenticated: boolean }) {
         <div className="rounded-2xl border border-[#1e3a5f] bg-[#0d1b2e] p-7">
           <h2 className="text-lg font-bold text-white mb-3">About the System</h2>
           <p className="text-[#7a9cc4] text-sm leading-relaxed mb-5">
-            The AI Interview Evaluation System is an intelligent platform designed to assess candidates through
-            adaptive, data-driven interview analysis. Unlike traditional interview systems, this platform analyzes
-            a candidate's resume and dynamically generates relevant technical and behavioral questions tailored to
-            their skills, experience, and domain expertise.
+            The Resume Based Personalised Multinomial AI Interview Evaluation System is an intelligent
+            platform designed to assess candidates through adaptive, data-driven interview analysis. Unlike
+            traditional interview systems, this platform analyzes a candidate's resume and dynamically
+            generates relevant technical and behavioral questions tailored to their skills, experience, and
+            domain expertise.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
@@ -141,7 +154,7 @@ function Footer() {
   return (
     <footer className="border-t border-[#1e3a5f]/60 bg-[#0d1b2e] px-6 py-5 text-center mt-12">
       <p className="text-xs text-[#7a9cc4]">
-        &copy; {new Date().getFullYear()} AI Interview Evaluation System. All rights reserved.
+        &copy; {new Date().getFullYear()} Resume Based Personalised Multinomial Ai Interview Evaluation System. All rights reserved.
       </p>
     </footer>
   );
@@ -178,12 +191,7 @@ export default function CandidateLanding() {
       <div className="min-h-screen bg-[#0d1117] flex flex-col">
         {/* Nav */}
         <header className="bg-[#0d1b2e] border-b border-[#1e3a5f]/60 px-6 py-3 flex items-center justify-between sticky top-0 z-10">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/20">
-              <Brain size={16} className="text-primary-foreground" />
-            </div>
-            <span className="font-bold text-foreground text-base tracking-tight">InterviewAI</span>
-          </div>
+          <NavLogo />
           <button
             onClick={login}
             className="flex items-center gap-1.5 px-4 py-1.5 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-semibold transition-colors"
@@ -195,14 +203,14 @@ export default function CandidateLanding() {
 
         {/* Hero */}
         <section className="text-center py-16 px-6 bg-gradient-to-b from-[#0d1b2e] to-[#0d1117] border-b border-[#1e3a5f]/40">
-          <p className="text-primary text-sm font-medium tracking-widest uppercase mb-3">Welcome to</p>
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-white leading-tight mb-3">
-            AI Interview
+          <p className="text-[#7a9cc4] text-sm font-medium tracking-widest mb-4">Welcome to</p>
+          <h1 className="text-5xl sm:text-6xl font-extrabold text-white leading-tight mb-3">
+            Resume Based Personalised
             <br />
-            <span className="text-primary">Evaluation System</span>
+            Multinomial
           </h1>
-          <p className="text-[#7a9cc4] text-base max-w-xl mx-auto mb-8">
-            Practice with adaptive AI interviews tailored to your skills. Get real-time voice guidance and instant scored feedback.
+          <p className="text-[#7a9cc4] text-lg mb-8 tracking-wide">
+            Ai Interview Evaluation System
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <button
@@ -223,7 +231,7 @@ export default function CandidateLanding() {
         </section>
 
         {/* Shared: About + Team */}
-        <SharedSections isAuthenticated={false} />
+        <SharedSections />
         <Footer />
       </div>
     );
@@ -236,13 +244,11 @@ export default function CandidateLanding() {
     <div className="min-h-screen bg-[#0d1117] flex flex-col">
       {/* Nav */}
       <header className="bg-[#0d1b2e] border-b border-[#1e3a5f]/60 px-6 py-3 flex items-center justify-between sticky top-0 z-10">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/20">
-            <Brain size={16} className="text-primary-foreground" />
-          </div>
-          <span className="font-bold text-foreground text-base tracking-tight">InterviewAI</span>
-        </div>
+        <NavLogo />
         <nav className="flex items-center gap-2">
+          <button className="p-1.5 rounded-md border border-[#1e3a5f] bg-[#0d1b2e] hover:bg-[#122440] text-sm text-foreground transition-colors">
+            <Moon size={14} className="text-[#7a9cc4]" />
+          </button>
           <button
             onClick={() => setLocation("/interview/customize")}
             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-md border border-[#1e3a5f] bg-[#0d1b2e] hover:bg-[#122440] text-sm text-foreground transition-colors"
@@ -272,14 +278,14 @@ export default function CandidateLanding() {
 
       {/* Hero */}
       <section className="text-center py-16 px-6 bg-gradient-to-b from-[#0d1b2e] to-[#0d1117] border-b border-[#1e3a5f]/40">
-        <p className="text-primary text-sm font-medium tracking-widest uppercase mb-3">Welcome, {firstName}</p>
-        <h1 className="text-4xl sm:text-5xl font-extrabold text-white leading-tight mb-3">
-          AI Interview
+        <p className="text-[#7a9cc4] text-sm font-medium tracking-widest mb-4">Welcome to</p>
+        <h1 className="text-5xl sm:text-6xl font-extrabold text-white leading-tight mb-3">
+          Resume Based Personalised
           <br />
-          <span className="text-primary">Evaluation System</span>
+          Multinomial
         </h1>
-        <p className="text-[#7a9cc4] text-base max-w-xl mx-auto mb-8">
-          Practice with adaptive AI interviews tailored to your skills. Get real-time voice guidance and instant scored feedback.
+        <p className="text-[#7a9cc4] text-lg mb-8 tracking-wide">
+          Ai Interview Evaluation System
         </p>
         <button
           onClick={() => setLocation("/interview/customize")}
@@ -291,7 +297,7 @@ export default function CandidateLanding() {
       </section>
 
       {/* Shared: About + Team */}
-      <SharedSections isAuthenticated={true} />
+      <SharedSections />
 
       {/* Employer Interviews */}
       <section id="employer-interviews" className="w-full max-w-4xl mx-auto px-6 mt-10">
