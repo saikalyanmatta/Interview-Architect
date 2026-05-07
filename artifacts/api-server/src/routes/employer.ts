@@ -232,6 +232,55 @@ router.get("/employer/sessions/:id", async (req: any, res): Promise<void> => {
   res.json({ session, answers, codingAnswers, skillScores, overallFeedback: session.overallFeedback });
 });
 
+// Export interview results (bulk, with section scores)
+router.get("/employer/interviews/:id/export", async (req: any, res): Promise<void> => {
+  const params = ListInterviewSessionsParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
+
+  const [interview] = await db.select().from(interviewsTable)
+    .where(and(eq(interviewsTable.id, params.data.id), eq(interviewsTable.employerId, req.user.id)));
+  if (!interview) { res.status(404).json({ error: "Not found" }); return; }
+
+  const sessions = await db.select().from(sessionsTable).where(eq(sessionsTable.interviewId, params.data.id));
+
+  const results = await Promise.all(sessions.map(async (session) => {
+    const questions = await db.select().from(questionsTable).where(eq(questionsTable.sessionId, session.id));
+    const answers = await db.select().from(answersTable).where(eq(answersTable.sessionId, session.id));
+    const codingAnswers = await db.select().from(codingAnswersTable).where(eq(codingAnswersTable.sessionId, session.id));
+
+    const behavioralAnswers = answers.filter((a) => {
+      const q = questions.find((q) => q.id === a.questionId);
+      return q?.type === "behavioral";
+    });
+    const technicalAnswers = answers.filter((a) => {
+      const q = questions.find((q) => q.id === a.questionId);
+      return q?.type === "technical";
+    });
+
+    const avg = (arr: { score: number | null }[]) => {
+      const scored = arr.filter((a) => a.score !== null);
+      return scored.length > 0
+        ? Math.round(scored.reduce((s, a) => s + (a.score ?? 0), 0) / scored.length)
+        : null;
+    };
+
+    return {
+      sessionId: session.id,
+      candidateName: session.candidateName ?? "",
+      candidateEmail: session.candidateEmail,
+      status: session.status,
+      overallScore: session.overallScore,
+      behavioralScore: avg(behavioralAnswers),
+      technicalScore: avg(technicalAnswers),
+      codingScore: avg(codingAnswers),
+      completedAt: session.completedAt,
+      startedAt: session.startedAt,
+    };
+  }));
+
+  res.json({ interviewTitle: interview.title, results });
+});
+
 // Employer stats
 router.get("/employer/stats", async (req: any, res): Promise<void> => {
   const interviews = await db.select().from(interviewsTable).where(eq(interviewsTable.employerId, req.user.id));

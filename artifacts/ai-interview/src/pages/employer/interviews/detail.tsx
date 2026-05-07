@@ -8,7 +8,8 @@ import {
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ArrowLeft, Plus, Users, Copy, ExternalLink } from "lucide-react";
+import { Loader2, ArrowLeft, Plus, Users, Copy, Download } from "lucide-react";
+import { downloadInterviewResults } from "@/lib/export-results";
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
@@ -29,6 +30,19 @@ export default function InterviewDetail() {
 
   const [emailsText, setEmailsText] = useState("");
   const [showInviteForm, setShowInviteForm] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      await downloadInterviewResults(interviewId, data?.title ?? "");
+      toast({ title: "Results downloaded successfully" });
+    } catch {
+      toast({ title: "Failed to download results", variant: "destructive" });
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const handleAddInvitations = () => {
     const emails = emailsText.split(/[\n,]+/).map((e) => e.trim()).filter(Boolean);
@@ -78,6 +92,14 @@ export default function InterviewDetail() {
             className="flex items-center gap-1.5 text-xs px-3 py-2 bg-secondary hover:bg-secondary/80 border border-border text-secondary-foreground rounded-lg transition-colors"
           >
             <Copy size={12} /> ID: {interviewId}
+          </button>
+          <button
+            onClick={handleExport}
+            disabled={isExporting}
+            className="flex items-center gap-1.5 text-xs px-3 py-2 bg-green-600 hover:bg-green-500 disabled:opacity-60 text-white rounded-lg transition-colors font-medium"
+          >
+            {isExporting ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />}
+            {isExporting ? "Exporting..." : "Download Results (.xlsx)"}
           </button>
         </div>
       </div>

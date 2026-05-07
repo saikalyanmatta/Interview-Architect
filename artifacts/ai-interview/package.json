@@ -78,6 +78,7 @@
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
-    "pdfjs-dist": "^5.7.284"
+    "pdfjs-dist": "^5.7.284",
+    "xlsx": "^0.18.5"
   }
 }
